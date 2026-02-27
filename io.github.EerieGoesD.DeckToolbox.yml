@@ -23,7 +23,8 @@ modules:
       env:
         npm_config_nodedir: /usr/lib/sdk/node20/include/node
     build-commands:
-      - npm install --offline --cache=$FLATPAK_BUILDER_BUILDDIR/npm-cache
+      - . flatpak-node/patch-all.sh
+      - npm install --offline --cache=$FLATPAK_BUILDER_BUILDDIR/flatpak-node/cache
       - npx electron-builder --linux dir
       - cp -r dist/linux-unpacked /app/main
       - install -Dm755 run.sh /app/bin/run.sh
