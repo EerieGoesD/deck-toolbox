@@ -1,0 +1,39 @@
+
+app-id: io.github.EerieGoesD.DeckToolbox
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+base: org.electronjs.Electron2.BaseApp
+base-version: '24.08'
+command: run.sh
+separate-locales: false
+
+finish-args:
+  - --share=ipc
+  - --socket=x11
+  - --socket=wayland
+  - --filesystem=home
+  - --filesystem=/run/media
+  - --talk-name=org.freedesktop.Flatpak
+
+modules:
+  - name: deck-toolbox
+    buildsystem: simple
+    build-options:
+      env:
+        npm_config_nodedir: /usr/lib/sdk/node20/include/node
+    build-commands:
+      - npm install --offline --cache=$FLATPAK_BUILDER_BUILDDIR/npm-cache
+      - npx electron-builder --linux dir
+      - cp -r dist/linux-unpacked /app/main
+      - install -Dm755 run.sh /app/bin/run.sh
+      - install -Dm644 io.github.EerieGoesD.DeckToolbox.desktop /app/share/applications/io.github.EerieGoesD.DeckToolbox.desktop
+      - install -Dm644 io.github.EerieGoesD.DeckToolbox.metainfo.xml /app/share/metainfo/io.github.EerieGoesD.DeckToolbox.metainfo.xml
+      - install -Dm644 icons/io.github.EerieGoesD.DeckToolbox.png /app/share/icons/hicolor/256x256/apps/io.github.EerieGoesD.DeckToolbox.png
+    sources:
+      - type: git
+        url: https://github.com/EerieGoesD/deck-toolbox
+        tag: v1.0.0
+      - generated-sources.json
+      - type: file
+        path: run.sh
