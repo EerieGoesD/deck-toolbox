@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Deck Toolbox
+Comment=One-click maintenance and troubleshooting for Steam Deck
+Exec=deck-toolbox
+Icon=io.github.EerieGoesD.DeckToolbox
+Type=Application
+Categories=Utility;System;
