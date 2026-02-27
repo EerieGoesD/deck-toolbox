@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Steam Deck Toolbox</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #111118;
+  --surface2: #1a1a24;
+  --border: #2a2a3a;
+  --accent: #ff6b2b;
+  --accent2: #ff9a5c;
+  --text: #e8e8f0;
+  --muted: #6b6b88;
+  --success: #3de68e;
+  --danger: #ff5555;
+  --warn: #f9c74f;
+  --info: #4cc9f0;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Syne', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-app-region: no-drag;
+  user-select: none;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── Header ── */
+header {
+  position: relative;
+  padding: 36px 28px 28px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, #0f0f1a 0%, var(--bg) 100%);
+  overflow: hidden;
+}
+
+header::after {
+  content: '';
+  position: absolute;
+  top: -60px; left: -40px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(255,107,43,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.header-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  opacity: 0.9;
+}
+
+h1 {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.15;
+  color: #fff;
+  margin-bottom: 8px;
+}
+h1 span { color: var(--accent); }
+
+.subtitle {
+  color: var(--muted);
+  font-size: 11px;
+  font-family: var(--mono);
+  line-height: 1.7;
+}
+
+/* ── Main Content ── */
+main {
+  padding: 28px;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Section ── */
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.section-header {
+  padding: 12px 18px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-icon {
+  width: 24px; height: 24px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.section-icon.danger { background: var(--danger); }
+.section-icon.warn { background: #b8860b; }
+
+.section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.section-body {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── Tool Card (button row) ── */
+.tool-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.tool-card:hover {
+  border-color: #3a3a50;
+  background: #1e1e2c;
+}
+
+.tool-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tool-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 3px;
+}
+
+.tool-desc {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.tool-btn {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 11px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tool-btn:hover { transform: translateY(-1px); }
+.tool-btn:active { transform: translateY(0); }
+.tool-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.tool-btn.primary {
+  background: var(--accent);
+  color: #fff;
+}
+.tool-btn.primary:hover:not(:disabled) { background: var(--accent2); box-shadow: 0 3px 14px rgba(255,107,43,0.25); }
+
+.tool-btn.green {
+  background: var(--success);
+  color: #0a0a0f;
+}
+.tool-btn.green:hover:not(:disabled) { background: #5aeda3; box-shadow: 0 3px 14px rgba(61,230,142,0.2); }
+
+.tool-btn.danger {
+  background: var(--danger);
+  color: #fff;
+}
+.tool-btn.danger:hover:not(:disabled) { background: #ff7777; box-shadow: 0 3px 14px rgba(255,85,85,0.25); }
+
+.tool-btn.warn {
+  background: var(--warn);
+  color: #1a1a24;
+}
+.tool-btn.warn:hover:not(:disabled) { background: #fad36a; box-shadow: 0 3px 14px rgba(249,199,79,0.2); }
+
+/* ── Output Console ── */
+.console-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 100;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+.console-overlay.open { display: flex; }
+
+.console-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  width: 100%;
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.25s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.console-header {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface2);
+  flex-shrink: 0;
+}
+
+.console-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.console-status {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.console-status.running { background: rgba(255,107,43,0.15); color: var(--accent); }
+.console-status.done { background: rgba(61,230,142,0.15); color: var(--success); }
+.console-status.error { background: rgba(255,85,85,0.15); color: var(--danger); }
+
+.console-close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+.console-close:hover { color: var(--text); }
+
+.console-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 18px;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--muted);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.console-body .line-ok { color: var(--success); }
+.console-body .line-warn { color: var(--warn); }
+.console-body .line-err { color: var(--danger); }
+
+/* ── Confirm Dialog ── */
+.confirm-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.confirm-overlay.open { display: flex; }
+
+.confirm-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  max-width: 440px;
+  width: 100%;
+  overflow: hidden;
+  animation: fadeScale 0.2s ease-out;
+}
+
+@keyframes fadeScale {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.confirm-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+
+.confirm-title {
+  font-weight: 800;
+  font-size: 15px;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.confirm-subtitle {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--danger);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.confirm-body {
+  padding: 18px 20px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.confirm-body code {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--surface2);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--accent2);
+}
+
+.confirm-actions {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.confirm-actions .tool-btn { font-size: 12px; padding: 8px 18px; }
+
+/* ── Footer ── */
+footer {
+  text-align: center;
+  padding: 16px 20px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+footer a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 700;
+}
+footer a:hover { color: var(--accent2); }
+footer .sep { color: var(--border); }
+
+/* ── Spinner ── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  display: inline-block;
+  width: 12px; height: 12px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <p class="tag">// Steam Deck Toolbox v1.0</p>
+    <h1>🎮 Deck <span>Toolbox</span></h1>
+    <p class="subtitle">Quick-fix scripts for your Steam Deck. Click a button, problem solved.</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- ═══ UTILITIES ═══ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon">🔧</div>
+      <div class="section-title">Utilities</div>
+    </div>
+    <div class="section-body">
+
+      <div class="tool-card">
+        <div class="tool-info">
+          <div class="tool-name">Generate .cue from .bin</div>
+          <div class="tool-desc">Select .bin files → creates matching MODE2/2352 .cue files if missing. Useful for retro disc images.</div>
+        </div>
+        <button class="tool-btn primary" id="btnCue" onclick="runCue()">▶ Run</button>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-info">
+          <div class="tool-name">Weekly Maintenance</div>
+          <div class="tool-desc">Flatpak updates, journal vacuum, TRIM, temp cleanup, disk checks — the full weekly routine.</div>
+        </div>
+        <button class="tool-btn green" id="btnMaint" onclick="runMaintenance()">▶ Run</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ RESETS ═══ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon warn">⚠</div>
+      <div class="section-title">Resets</div>
+    </div>
+    <div class="section-body">
+
+      <div class="tool-card">
+        <div class="tool-info">
+          <div class="tool-name">Reset Steam Client</div>
+          <div class="tool-desc">Renames <code>~/.local/share/Steam</code> → <code>Steam_backup</code>. Steam will re-create a fresh directory on next launch. You'll need to sign in again.</div>
+        </div>
+        <button class="tool-btn warn" id="btnSteam" onclick="confirmAction('steam')">▶ Run</button>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-info">
+          <div class="tool-name">Reset Gamescope</div>
+          <div class="tool-desc">Clears Gamescope state &amp; config directories. Fixes display/resolution glitches. Reboot recommended after.</div>
+        </div>
+        <button class="tool-btn warn" id="btnGamescope" onclick="confirmAction('gamescope')">▶ Run</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ BOOT LOOP RECOVERY ═══ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon danger">🚨</div>
+      <div class="section-title">Boot Loop Recovery</div>
+    </div>
+    <div class="section-body">
+
+      <div class="tool-card">
+        <div class="tool-info">
+          <div class="tool-name">Full Recovery (Steam + Gamescope Reset)</div>
+          <div class="tool-desc">Nuclear option — resets both Steam client and Gamescope in one go. Use when stuck in a boot loop. Reboot after, then sign in to Steam again.</div>
+        </div>
+        <button class="tool-btn danger" id="btnRecovery" onclick="confirmAction('recovery')">▶ Run</button>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <span>Made by</span>
+  <a href="https://linktr.ee/eeriegoesd" target="_blank" rel="noreferrer">EERIE</a>
+  <span class="sep">·</span>
+  <a href="https://buymeacoffee.com/eeriegoesd" target="_blank" rel="noreferrer">☕ Buy Me a Coffee</a>
+</footer>
+
+<!-- ═══ Console Overlay ═══ -->
+<div class="console-overlay" id="consoleOverlay">
+  <div class="console-panel">
+    <div class="console-header">
+      <div class="console-title">
+        <span id="consoleLabel">Output</span>
+        <span class="console-status running" id="consoleStatus">Running</span>
+      </div>
+      <button class="console-close" id="consoleClose" onclick="closeConsole()">✕</button>
+    </div>
+    <div class="console-body" id="consoleBody"></div>
+  </div>
+</div>
+
+<!-- ═══ Confirm Dialog ═══ -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-header">
+      <div class="confirm-title" id="confirmTitle">Are you sure?</div>
+      <div class="confirm-subtitle">Destructive action</div>
+    </div>
+    <div class="confirm-body" id="confirmBody"></div>
+    <div class="confirm-actions">
+      <button class="tool-btn primary" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);" onclick="closeConfirm()">Cancel</button>
+      <button class="tool-btn danger" id="confirmYes">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// Console
+// ─────────────────────────────────────────────
+
+function openConsole(label) {
+  document.getElementById('consoleLabel').textContent = label;
+  document.getElementById('consoleBody').innerHTML = '';
+  setConsoleStatus('running');
+  document.getElementById('consoleOverlay').classList.add('open');
+  document.getElementById('consoleClose').style.display = 'none';
+}
+
+function appendConsole(text) {
+  const body = document.getElementById('consoleBody');
+  const lines = text.split('\n');
+  for (const line of lines) {
+    const el = document.createElement('div');
+    el.textContent = line;
+    if (/\bOK\b/i.test(line)) el.className = 'line-ok';
+    else if (/\bWARN\b/i.test(line)) el.className = 'line-warn';
+    else if (/\bFAIL\b|\bERROR\b/i.test(line)) el.className = 'line-err';
+    body.appendChild(el);
+  }
+  body.scrollTop = body.scrollHeight;
+}
+
+function setConsoleStatus(type) {
+  const el = document.getElementById('consoleStatus');
+  el.className = 'console-status ' + type;
+  el.textContent = type === 'running' ? '● Running…' : type === 'done' ? '✓ Done' : '✕ Error';
+  if (type !== 'running') {
+    document.getElementById('consoleClose').style.display = '';
+  }
+}
+
+function closeConsole() {
+  document.getElementById('consoleOverlay').classList.remove('open');
+}
+
+// ─────────────────────────────────────────────
+// Confirm dialog
+// ─────────────────────────────────────────────
+
+const CONFIRM_DATA = {
+  steam: {
+    title: 'Reset Steam Client?',
+    body: `This will rename your <code>~/.local/share/Steam</code> directory to <code>Steam_backup</code>.<br><br>Steam will need to be set up fresh on next launch — you'll need to <strong>sign in again</strong> and your non-default install locations will need to be re-added.<br><br>Your games on the SD card or other drives are safe.`,
+    action: () => runSteamReset()
+  },
+  gamescope: {
+    title: 'Reset Gamescope?',
+    body: `This will delete:<br>• <code>~/.local/state/gamescope</code><br>• <code>~/.config/gamescope</code><br><br>Fixes display and resolution glitches. A <strong>reboot is recommended</strong> after.`,
+    action: () => runGamescopeReset()
+  },
+  recovery: {
+    title: 'Full Recovery — Steam + Gamescope?',
+    body: `This is the <strong>nuclear option</strong>. It will:<br><br>1. Rename your Steam directory to <code>Steam_backup</code><br>2. Delete all Gamescope state &amp; config<br><br>Use this when your Deck is stuck in a <strong>boot loop</strong>. You will need to <strong>reboot</strong> and <strong>sign in to Steam</strong> again afterward.`,
+    action: () => runFullRecovery()
+  }
+};
+
+function confirmAction(key) {
+  const data = CONFIRM_DATA[key];
+  document.getElementById('confirmTitle').textContent = data.title;
+  document.getElementById('confirmBody').innerHTML = data.body;
+  const yesBtn = document.getElementById('confirmYes');
+  yesBtn.onclick = () => { closeConfirm(); data.action(); };
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+
+function closeConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('open');
+}
+
+// Close overlays on backdrop click
+document.getElementById('confirmOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeConfirm();
+});
+document.getElementById('consoleOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget && document.getElementById('consoleClose').style.display !== 'none') closeConsole();
+});
+
+// ─────────────────────────────────────────────
+// Actions
+// ─────────────────────────────────────────────
+
+function disableBtn(id) { document.getElementById(id).disabled = true; }
+function enableBtn(id) { document.getElementById(id).disabled = false; }
+
+async function runCue() {
+  disableBtn('btnCue');
+  try {
+    const result = await window.toolbox.generateCue();
+    if (result.canceled) {
+      enableBtn('btnCue');
+      return;
+    }
+    openConsole('Generate .cue');
+    for (const r of result.results) {
+      const prefix = r.status === 'ok' ? '✓' : r.status === 'skipped' ? '⊘' : '✕';
+      appendConsole(`${prefix}  ${r.file}: ${r.msg}`);
+    }
+    const ok = result.results.every(r => r.status !== 'error');
+    setConsoleStatus(ok ? 'done' : 'error');
+  } catch (err) {
+    openConsole('Generate .cue');
+    appendConsole('Error: ' + err.message);
+    setConsoleStatus('error');
+  }
+  enableBtn('btnCue');
+}
+
+async function runMaintenance() {
+  disableBtn('btnMaint');
+  openConsole('Weekly Maintenance');
+  appendConsole('Starting maintenance — this may take several minutes…\n');
+  try {
+    const result = await window.toolbox.runMaintenance();
+    appendConsole(result.stdout);
+    if (result.stderr) appendConsole('\n--- stderr ---\n' + result.stderr);
+    setConsoleStatus(result.code === 0 ? 'done' : 'error');
+  } catch (err) {
+    appendConsole('Error: ' + err.message);
+    setConsoleStatus('error');
+  }
+  enableBtn('btnMaint');
+}
+
+async function runSteamReset() {
+  disableBtn('btnSteam');
+  openConsole('Reset Steam Client');
+  try {
+    const result = await window.toolbox.steamReset();
+    appendConsole(result.stdout);
+    if (result.stderr) appendConsole('\n--- stderr ---\n' + result.stderr);
+    setConsoleStatus(result.code === 0 ? 'done' : 'error');
+  } catch (err) {
+    appendConsole('Error: ' + err.message);
+    setConsoleStatus('error');
+  }
+  enableBtn('btnSteam');
+}
+
+async function runGamescopeReset() {
+  disableBtn('btnGamescope');
+  openConsole('Reset Gamescope');
+  try {
+    const result = await window.toolbox.gamescopeReset();
+    appendConsole(result.stdout);
+    if (result.stderr) appendConsole('\n--- stderr ---\n' + result.stderr);
+    setConsoleStatus(result.code === 0 ? 'done' : 'error');
+  } catch (err) {
+    appendConsole('Error: ' + err.message);
+    setConsoleStatus('error');
+  }
+  enableBtn('btnGamescope');
+}
+
+async function runFullRecovery() {
+  disableBtn('btnRecovery');
+  openConsole('Full Recovery');
+  try {
+    const result = await window.toolbox.fullRecovery();
+    appendConsole(result.stdout);
+    if (result.stderr) appendConsole('\n--- stderr ---\n' + result.stderr);
+    setConsoleStatus(result.code === 0 ? 'done' : 'error');
+  } catch (err) {
+    appendConsole('Error: ' + err.message);
+    setConsoleStatus('error');
+  }
+  enableBtn('btnRecovery');
+}
+</script>
+</body>
+</html>

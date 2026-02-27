@@ -1,0 +1,51 @@
+{
+  "name": "steamdeck-toolbox",
+  "version": "1.0.0",
+  "description": "Steam Deck Toolbox — Quick-fix scripts with a modern GUI",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --linux flatpak",
+    "dist": "electron-builder --linux flatpak"
+  },
+  "author": "EERIE",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.eerie.steamdeck-toolbox",
+    "productName": "Steam Deck Toolbox",
+    "linux": {
+      "target": [
+        "flatpak"
+      ],
+      "category": "Utility",
+      "icon": "icon.png"
+    },
+    "flatpak": {
+      "runtimeVersion": "24.08",
+      "runtime": "org.freedesktop.Platform",
+      "sdk": "org.freedesktop.Sdk",
+      "base": "org.electronjs.Electron2.BaseApp",
+      "baseVersion": "24.08",
+      "finishArgs": [
+        "--share=ipc",
+        "--socket=x11",
+        "--socket=wayland",
+        "--filesystem=home",
+        "--filesystem=/run/media",
+        "--talk-name=org.freedesktop.Flatpak",
+        "--talk-name=org.freedesktop.portal.FileChooser"
+      ]
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "scripts/**/*",
+      "icon.png"
+    ]
+  }
+}
