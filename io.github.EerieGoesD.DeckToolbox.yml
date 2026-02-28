@@ -36,7 +36,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/EerieGoesD/deck-toolbox
-        commit: e3f08cab2583c0b466b95be50be2d435bb7b2412
+        branch: main
       - generated-sources.json
       - type: file
         path: run.sh
