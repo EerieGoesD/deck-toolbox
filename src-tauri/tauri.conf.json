@@ -33,7 +33,5 @@
       "deb": {}
     }
   },
-  "plugins": {
-    "dialog": {}
-  }
+  "plugins": {}
 }
