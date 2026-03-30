@@ -14,7 +14,7 @@
   --accent: #ff6b2b;
   --accent2: #ff9a5c;
   --text: #e8e8f0;
-  --muted: #6b6b88;
+  --muted: #9d9db8;
   --success: #3de68e;
   --danger: #ff5555;
   --warn: #f9c74f;
@@ -25,13 +25,16 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+html, body { height: 100%; }
+
 body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--sans);
-  min-height: 100vh;
-  overflow-x: hidden;
+  overflow: hidden;
   user-select: none;
+  display: flex;
+  flex-direction: column;
 }
 
 body::before {
@@ -52,10 +55,10 @@ body::before {
 /* ── Header ── */
 header {
   position: relative;
-  padding: 36px 28px 28px;
-  border-bottom: 1px solid var(--border);
+  padding: 24px 32px 0;
   background: linear-gradient(180deg, #0f0f1a 0%, var(--bg) 100%);
-  overflow: hidden;
+  flex-shrink: 0;
+  z-index: 1;
 }
 
 header::after {
@@ -67,146 +70,155 @@ header::after {
   pointer-events: none;
 }
 
-.header-inner {
+.header-top {
   position: relative;
   z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
 }
 
-.tag {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--accent);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  margin-bottom: 10px;
-  opacity: 0.9;
-}
-
-h1 {
-  font-size: 28px;
+.header-left h1 {
+  font-size: 24px;
   font-weight: 800;
-  line-height: 1.15;
   color: #fff;
-  margin-bottom: 8px;
 }
-h1 span { color: var(--accent); }
+.header-left h1 span { color: var(--accent); }
 
-.subtitle {
+.header-left .subtitle {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-family: var(--mono);
-  line-height: 1.7;
+  margin-top: 4px;
+}
+
+.header-right {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-right a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 700;
+}
+.header-right a:hover { color: var(--accent2); }
+.header-right .sep { color: var(--border); }
+
+/* ── Tabs ── */
+.tabs {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.tab {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 18px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.tab.active {
+  color: #fff;
+  border-bottom-color: var(--accent);
 }
 
 /* ── Main Content ── */
 main {
-  padding: 28px;
+  flex: 1;
   position: relative;
   z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-/* ── Section ── */
-.section {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
   overflow: hidden;
-}
-
-.section-header {
-  padding: 12px 18px;
-  background: var(--surface2);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.section-icon {
-  width: 24px; height: 24px;
-  background: var(--accent);
-  color: #fff;
-  font-size: 11px;
-  border-radius: 5px;
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--mono);
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.section-icon.danger { background: var(--danger); }
-.section-icon.warn { background: #b8860b; }
-
-.section-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.section-body {
-  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
 }
 
-/* ── Tool Card (button row) ── */
+.tab-content {
+  display: none;
+  flex: 1;
+  padding: 28px 32px;
+  overflow-y: auto;
+}
+
+.tab-content.active {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 700px;
+}
+
+/* ── Tool Card ── */
 .tool-card {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px 14px;
-  background: var(--surface2);
+  padding: 16px 20px;
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   transition: border-color 0.2s, background 0.2s;
+  gap: 20px;
 }
 
 .tool-card:hover {
   border-color: #3a3a50;
-  background: #1e1e2c;
+  background: #161620;
 }
 
 .tool-info {
   flex: 1;
-  min-width: 0;
 }
 
 .tool-name {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   color: #fff;
-  margin-bottom: 3px;
+  margin-bottom: 8px;
 }
 
 .tool-desc {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
-  line-height: 1.5;
+  line-height: 1.7;
 }
 
 .tool-btn {
   font-family: var(--sans);
   font-weight: 700;
-  font-size: 11px;
-  padding: 8px 16px;
+  font-size: 13px;
+  padding: 10px 24px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
   letter-spacing: 0.5px;
-  flex-shrink: 0;
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
   text-transform: uppercase;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tool-btn:hover { transform: translateY(-1px); }
@@ -284,7 +296,7 @@ main {
 
 .console-title {
   font-weight: 700;
-  font-size: 13px;
+  font-size: 15px;
   color: #fff;
   display: flex;
   align-items: center;
@@ -293,8 +305,8 @@ main {
 
 .console-status {
   font-family: var(--mono);
-  font-size: 10px;
-  padding: 3px 8px;
+  font-size: 12px;
+  padding: 4px 10px;
   border-radius: 4px;
   font-weight: 600;
 }
@@ -318,9 +330,9 @@ main {
   overflow-y: auto;
   padding: 14px 18px;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.7;
-  color: var(--muted);
+  color: var(--text);
   white-space: pre-wrap;
   word-break: break-all;
 }
@@ -346,7 +358,7 @@ main {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
-  max-width: 440px;
+  max-width: 480px;
   width: 100%;
   overflow: hidden;
   animation: fadeScale 0.2s ease-out;
@@ -365,14 +377,14 @@ main {
 
 .confirm-title {
   font-weight: 800;
-  font-size: 15px;
+  font-size: 16px;
   color: #fff;
   margin-bottom: 4px;
 }
 
 .confirm-subtitle {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 12px;
   color: var(--danger);
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -380,14 +392,14 @@ main {
 
 .confirm-body {
   padding: 18px 20px;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.7;
   color: var(--text);
 }
 
 .confirm-body code {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 12px;
   background: var(--surface2);
   padding: 2px 6px;
   border-radius: 3px;
@@ -402,31 +414,7 @@ main {
   gap: 8px;
 }
 
-.confirm-actions .tool-btn { font-size: 12px; padding: 8px 18px; }
-
-/* ── Footer ── */
-footer {
-  text-align: center;
-  padding: 16px 20px;
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  position: relative;
-  z-index: 1;
-}
-
-footer a {
-  color: var(--accent);
-  text-decoration: none;
-  font-weight: 700;
-}
-footer a:hover { color: var(--accent2); }
-footer .sep { color: var(--border); }
+.confirm-actions .tool-btn { font-size: 14px; padding: 10px 22px; width: auto; }
 
 /* ── Spinner ── */
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -444,193 +432,146 @@ footer .sep { color: var(--border); }
 <body>
 
 <header>
-  <div class="header-inner">
-    <p class="tag">// Steam Deck Toolbox v1.0</p>
-    <h1>🎮 Deck <span>Toolbox</span></h1>
-    <p class="subtitle">Quick-fix scripts for your Steam Deck. Click a button, problem solved.</p>
+  <div class="header-top">
+    <div class="header-left">
+      <h1>Deck <span>Toolbox</span></h1>
+      <p class="subtitle">Quick-fix scripts for your Steam Deck.</p>
+    </div>
+    <div class="header-right">
+      <span>Made by</span>
+      <a href="https://eeriegoesd.com/" target="_blank" rel="noreferrer">EERIE</a>
+      <span class="sep">|</span>
+      <a href="https://buymeacoffee.com/eeriegoesd" target="_blank" rel="noreferrer">Buy Me a Coffee</a>
+    </div>
   </div>
+  <nav class="tabs">
+    <button class="tab active" onclick="switchTab('utilities')">Utilities</button>
+    <button class="tab" onclick="switchTab('resets')">Resets</button>
+    <button class="tab" onclick="switchTab('roms')">ROM Tools</button>
+    <button class="tab" onclick="switchTab('storage')">Storage</button>
+    <button class="tab" onclick="switchTab('decky')">Decky Loader</button>
+    <button class="tab" onclick="switchTab('recovery')">Recovery</button>
+  </nav>
 </header>
 
 <main>
 
   <!-- ═══ UTILITIES ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-icon">🔧</div>
-      <div class="section-title">Utilities</div>
+  <div class="tab-content active" data-tab="utilities">
+    <div class="tool-card">
+      <div class="tool-info">
+        <div class="tool-name">Generate .cue from .bin</div>
+        <div class="tool-desc">Select .bin files and create matching MODE2/2352 .cue files if missing. Useful for retro disc images.</div>
+      </div>
+      <button class="tool-btn primary" id="btnCue" onclick="runCue()">Run</button>
     </div>
-    <div class="section-body">
-
-      <div class="tool-card">
-        <div class="tool-info">
-          <div class="tool-name">Generate .cue from .bin</div>
-          <div class="tool-desc">Select .bin files → creates matching MODE2/2352 .cue files if missing. Useful for retro disc images.</div>
-        </div>
-        <button class="tool-btn primary" id="btnCue" onclick="runCue()">▶ Run</button>
+    <div class="tool-card">
+      <div class="tool-info">
+        <div class="tool-name">Weekly Maintenance</div>
+        <div class="tool-desc">Flatpak updates, journal vacuum, TRIM, temp cleanup, disk checks - the full weekly routine.</div>
       </div>
-
-      <div class="tool-card">
-        <div class="tool-info">
-          <div class="tool-name">Weekly Maintenance</div>
-          <div class="tool-desc">Flatpak updates, journal vacuum, TRIM, temp cleanup, disk checks — the full weekly routine.</div>
-        </div>
-        <button class="tool-btn green" id="btnMaint" onclick="runMaintenance()">▶ Run</button>
-      </div>
-
+      <button class="tool-btn green" id="btnMaint" onclick="runMaintenance()">Run</button>
     </div>
   </div>
 
   <!-- ═══ RESETS ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-icon warn">⚠</div>
-      <div class="section-title">Resets</div>
+  <div class="tab-content" data-tab="resets">
+    <div class="tool-card">
+      <div class="tool-info">
+        <div class="tool-name">Reset Steam Client</div>
+        <div class="tool-desc">Renames your Steam directory to Steam_backup. Steam will re-create a fresh directory on next launch. You'll need to sign in again.</div>
+      </div>
+      <button class="tool-btn warn" id="btnSteam" onclick="confirmAction('steam')">Run</button>
     </div>
-    <div class="section-body">
-
-      <div class="tool-card">
-        <div class="tool-info">
-          <div class="tool-name">Reset Steam Client</div>
-          <div class="tool-desc">Renames <code>~/.local/share/Steam</code> → <code>Steam_backup</code>. Steam will re-create a fresh directory on next launch. You'll need to sign in again.</div>
-        </div>
-        <button class="tool-btn warn" id="btnSteam" onclick="confirmAction('steam')">▶ Run</button>
+    <div class="tool-card">
+      <div class="tool-info">
+        <div class="tool-name">Reset Gamescope</div>
+        <div class="tool-desc">Clears Gamescope state and config directories. Fixes display and resolution glitches. Reboot recommended after.</div>
       </div>
-
-      <div class="tool-card">
-        <div class="tool-info">
-          <div class="tool-name">Reset Gamescope</div>
-          <div class="tool-desc">Clears Gamescope state &amp; config directories. Fixes display/resolution glitches. Reboot recommended after.</div>
-        </div>
-        <button class="tool-btn warn" id="btnGamescope" onclick="confirmAction('gamescope')">▶ Run</button>
-      </div>
-
+      <button class="tool-btn warn" id="btnGamescope" onclick="confirmAction('gamescope')">Run</button>
     </div>
   </div>
 
   <!-- ═══ ROM TOOLS ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-icon">🎮</div>
-      <div class="section-title">ROM Tools</div>
+  <div class="tab-content" data-tab="roms">
+    <div class="tool-card">
+      <div class="tool-info">
+        <div class="tool-name">Duplicate ROM Finder</div>
+        <div class="tool-desc">Scans each console folder for near-duplicate ROM files using normalized filenames. Helps free up SD card space.</div>
+      </div>
+      <button class="tool-btn primary" id="btnDupeRom" onclick="runDuplicateRomFinder()">Run</button>
     </div>
-    <div class="section-body">
-
-      <div class="tool-card">
-        <div class="tool-info">
-          <div class="tool-name">Duplicate ROM Finder</div>
-          <div class="tool-desc">Scans each console folder for near-duplicate ROM files using normalized filenames. Helps free up SD card space.</div>
-        </div>
-        <button class="tool-btn primary" id="btnDupeRom" onclick="runDuplicateRomFinder()">▶ Run</button>
+    <div class="tool-card">
+      <div class="tool-info">
+        <div class="tool-name">Find Lost ROMs</div>
+        <div class="tool-desc">Searches for ROM files outside standard EmuDeck directories. Finds misplaced or forgotten ROMs across your Deck.</div>
       </div>
-
-      <div class="tool-card">
-        <div class="tool-info">
-          <div class="tool-name">Find Lost ROMs</div>
-          <div class="tool-desc">Searches for ROM files outside standard EmuDeck directories. Finds misplaced or forgotten ROMs across your Deck.</div>
-        </div>
-        <button class="tool-btn primary" id="btnLostRoms" onclick="runFindLostRoms()">▶ Run</button>
+      <button class="tool-btn primary" id="btnLostRoms" onclick="runFindLostRoms()">Run</button>
+    </div>
+    <div class="tool-card">
+      <div class="tool-info">
+        <div class="tool-name">ROM Size Sorter</div>
+        <div class="tool-desc">Lists all ROMs sorted by file size, largest first. Useful for identifying which games take up the most space.</div>
       </div>
-
-      <div class="tool-card">
-        <div class="tool-info">
-          <div class="tool-name">ROM Size Sorter</div>
-          <div class="tool-desc">Lists all ROMs sorted by file size (largest first). Useful for identifying which games take up the most space.</div>
-        </div>
-        <button class="tool-btn primary" id="btnRomSort" onclick="runRomSizeSorter()">▶ Run</button>
+      <button class="tool-btn primary" id="btnRomSort" onclick="runRomSizeSorter()">Run</button>
+    </div>
+    <div class="tool-card">
+      <div class="tool-info">
+        <div class="tool-name">Remove ROMs Metadata</div>
+        <div class="tool-desc">Clears downloaded media and gamelist.xml files from EmuDeck and ES-DE. Useful for a clean scrape.</div>
       </div>
-
-      <div class="tool-card">
-        <div class="tool-info">
-          <div class="tool-name">Remove ROMs Metadata</div>
-          <div class="tool-desc">Clears downloaded media and gamelist.xml files from EmuDeck and ES-DE. Useful for a clean scrape.</div>
-        </div>
-        <button class="tool-btn warn" id="btnRomMeta" onclick="confirmAction('romMetadata')">▶ Run</button>
-      </div>
-
+      <button class="tool-btn warn" id="btnRomMeta" onclick="confirmAction('romMetadata')">Run</button>
     </div>
   </div>
 
   <!-- ═══ STORAGE ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-icon">📦</div>
-      <div class="section-title">Storage</div>
+  <div class="tab-content" data-tab="storage">
+    <div class="tool-card">
+      <div class="tool-info">
+        <div class="tool-name">Large File Finder</div>
+        <div class="tool-desc">Finds the largest files and directories on your Deck, sorted by size. Shows the top 50 results.</div>
+      </div>
+      <button class="tool-btn primary" id="btnLargeFile" onclick="runLargeFileFinder()">Run</button>
     </div>
-    <div class="section-body">
-
-      <div class="tool-card">
-        <div class="tool-info">
-          <div class="tool-name">Large File Finder</div>
-          <div class="tool-desc">Finds the largest files and directories on your Deck, sorted by size. Shows the top 50 results.</div>
-        </div>
-        <button class="tool-btn primary" id="btnLargeFile" onclick="runLargeFileFinder()">▶ Run</button>
+    <div class="tool-card">
+      <div class="tool-info">
+        <div class="tool-name">Deck Declutter</div>
+        <div class="tool-desc">Removes known clutter files - old flatpaks, stale caches, leftover AppImages, and other junk.</div>
       </div>
-
-      <div class="tool-card">
-        <div class="tool-info">
-          <div class="tool-name">Deck Declutter</div>
-          <div class="tool-desc">Removes known clutter files - old flatpaks, stale caches, leftover AppImages, and other junk.</div>
-        </div>
-        <button class="tool-btn warn" id="btnDeclutter" onclick="confirmAction('declutter')">▶ Run</button>
-      </div>
-
+      <button class="tool-btn warn" id="btnDeclutter" onclick="confirmAction('declutter')">Run</button>
     </div>
   </div>
 
   <!-- ═══ DECKY LOADER ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-icon danger">🔌</div>
-      <div class="section-title">Decky Loader</div>
+  <div class="tab-content" data-tab="decky">
+    <div class="tool-card">
+      <div class="tool-info">
+        <div class="tool-name">Find Decky Leftovers</div>
+        <div class="tool-desc">Searches for leftover Decky Loader files after uninstall. Shows sizes and locations of any remaining files.</div>
+      </div>
+      <button class="tool-btn primary" id="btnDeckyLeftovers" onclick="runFindDeckyLeftovers()">Run</button>
     </div>
-    <div class="section-body">
-
-      <div class="tool-card">
-        <div class="tool-info">
-          <div class="tool-name">Find Decky Leftovers</div>
-          <div class="tool-desc">Searches for leftover Decky Loader files after uninstall. Shows sizes and locations of any remaining files.</div>
-        </div>
-        <button class="tool-btn primary" id="btnDeckyLeftovers" onclick="runFindDeckyLeftovers()">▶ Run</button>
+    <div class="tool-card">
+      <div class="tool-info">
+        <div class="tool-name">Uninstall Decky Loader</div>
+        <div class="tool-desc">Runs the official Decky uninstall script and cleans up all leftover system files, logs, and configs.</div>
       </div>
-
-      <div class="tool-card">
-        <div class="tool-info">
-          <div class="tool-name">Uninstall Decky Loader</div>
-          <div class="tool-desc">Runs the official Decky uninstall script and cleans up all leftover system files, logs, and configs.</div>
-        </div>
-        <button class="tool-btn danger" id="btnUninstallDecky" onclick="confirmAction('uninstallDecky')">▶ Run</button>
-      </div>
-
+      <button class="tool-btn danger" id="btnUninstallDecky" onclick="confirmAction('uninstallDecky')">Run</button>
     </div>
   </div>
 
-  <!-- ═══ BOOT LOOP RECOVERY ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-icon danger">🚨</div>
-      <div class="section-title">Boot Loop Recovery</div>
-    </div>
-    <div class="section-body">
-
-      <div class="tool-card">
-        <div class="tool-info">
-          <div class="tool-name">Full Recovery (Steam + Gamescope Reset)</div>
-          <div class="tool-desc">Nuclear option — resets both Steam client and Gamescope in one go. Use when stuck in a boot loop. Reboot after, then sign in to Steam again.</div>
-        </div>
-        <button class="tool-btn danger" id="btnRecovery" onclick="confirmAction('recovery')">▶ Run</button>
+  <!-- ═══ RECOVERY ═══ -->
+  <div class="tab-content" data-tab="recovery">
+    <div class="tool-card">
+      <div class="tool-info">
+        <div class="tool-name">Full Recovery (Steam + Gamescope)</div>
+        <div class="tool-desc">Nuclear option - resets both Steam client and Gamescope in one go. Use when stuck in a boot loop. Reboot after, then sign in to Steam again.</div>
       </div>
-
+      <button class="tool-btn danger" id="btnRecovery" onclick="confirmAction('recovery')">Run</button>
     </div>
   </div>
 
 </main>
-
-<footer>
-  <span>Made by</span>
-  <a href="https://eeriegoesd.com/" target="_blank" rel="noreferrer">EERIE</a>
-  <span class="sep">·</span>
-  <a href="https://buymeacoffee.com/eeriegoesd" target="_blank" rel="noreferrer">☕ Buy Me a Coffee</a>
-</footer>
 
 <!-- ═══ Console Overlay ═══ -->
 <div class="console-overlay" id="consoleOverlay">
@@ -640,7 +581,7 @@ footer .sep { color: var(--border); }
         <span id="consoleLabel">Output</span>
         <span class="console-status running" id="consoleStatus">Running</span>
       </div>
-      <button class="console-close" id="consoleClose" onclick="closeConsole()">✕</button>
+      <button class="console-close" id="consoleClose" onclick="closeConsole()">&#x2715;</button>
     </div>
     <div class="console-body" id="consoleBody"></div>
   </div>
@@ -663,6 +604,17 @@ footer .sep { color: var(--border); }
 
 <script>
 const { invoke } = window.__TAURI__.core;
+
+// ─────────────────────────────────────────────
+// Tabs
+// ─────────────────────────────────────────────
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelector(`.tab-content[data-tab="${name}"]`).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
 
 // ─────────────────────────────────────────────
 // Console
@@ -693,7 +645,7 @@ function appendConsole(text) {
 function setConsoleStatus(type) {
   const el = document.getElementById('consoleStatus');
   el.className = 'console-status ' + type;
-  el.textContent = type === 'running' ? '● Running…' : type === 'done' ? '✓ Done' : '✕ Error';
+  el.textContent = type === 'running' ? 'Running...' : type === 'done' ? 'Done' : 'Error';
   if (type !== 'running') {
     document.getElementById('consoleClose').style.display = '';
   }
@@ -710,22 +662,22 @@ function closeConsole() {
 const CONFIRM_DATA = {
   steam: {
     title: 'Reset Steam Client?',
-    body: `This script will do the following:<br><br>• Rename your <code>~/.local/share/Steam</code> directory to <code>Steam_backup</code><br>• Steam will need to be set up fresh on next launch - you'll need to <strong>sign in again</strong><br>• Your non-default install locations will need to be re-added<br>• Your games on the SD card or other drives are safe<br><br>It will create backup folders which may have a <strong>very large size</strong> depending on how much you have installed on your Deck. You will be asked if you want to delete these backup folders after the reset completes.`,
+    body: `This script will do the following:<br><br>&#8226; Rename your <code>~/.local/share/Steam</code> directory to <code>Steam_backup</code><br>&#8226; Steam will need to be set up fresh on next launch - you'll need to <strong>sign in again</strong><br>&#8226; Your non-default install locations will need to be re-added<br>&#8226; Your games on the SD card or other drives are safe<br><br>It will create backup folders which may have a <strong>very large size</strong> depending on how much you have installed on your Deck. You will be asked if you want to delete these backup folders after the reset completes.`,
     action: () => runSteamReset()
   },
   gamescope: {
     title: 'Reset Gamescope?',
-    body: `This will delete:<br>• <code>~/.local/state/gamescope</code><br>• <code>~/.config/gamescope</code><br><br>Fixes display and resolution glitches. A <strong>reboot is recommended</strong> after.`,
+    body: `This will delete:<br>&#8226; <code>~/.local/state/gamescope</code><br>&#8226; <code>~/.config/gamescope</code><br><br>Fixes display and resolution glitches. A <strong>reboot is recommended</strong> after.`,
     action: () => runGamescopeReset()
   },
   romMetadata: {
     title: 'Remove ROMs Metadata?',
-    body: `This will delete:<br><br>• All downloaded media from <code>EmuDeck/Emulation/tools/downloaded_media/</code><br>• All <code>gamelist.xml</code> files from EmuDeck and ES-DE<br><br>This is useful when you want to do a <strong>clean scrape</strong>. Your ROMs will not be affected.`,
+    body: `This will delete:<br><br>&#8226; All downloaded media from <code>EmuDeck/Emulation/tools/downloaded_media/</code><br>&#8226; All <code>gamelist.xml</code> files from EmuDeck and ES-DE<br><br>This is useful when you want to do a <strong>clean scrape</strong>. Your ROMs will not be affected.`,
     action: () => runRemoveRomsMetadata()
   },
   declutter: {
     title: 'Deck Declutter?',
-    body: `This will scan for and delete known clutter files:<br><br>• Old <code>.flatpak</code> files<br>• Stale build caches (<code>.flatpak-builder</code>, <code>go-build</code>)<br>• Leftover AppImages and launcher archives<br>• Winetricks caches<br><br>Only known safe-to-delete items are targeted.`,
+    body: `This will scan for and delete known clutter files:<br><br>&#8226; Old <code>.flatpak</code> files<br>&#8226; Stale build caches (<code>.flatpak-builder</code>, <code>go-build</code>)<br>&#8226; Leftover AppImages and launcher archives<br>&#8226; Winetricks caches<br><br>Only known safe-to-delete items are targeted.`,
     action: () => runDeckDeclutter()
   },
   uninstallDecky: {
@@ -735,7 +687,7 @@ const CONFIRM_DATA = {
   },
   recovery: {
     title: 'Full Recovery - Steam + Gamescope?',
-    body: `This script will do the following:<br><br>1. Rename your Steam directory to <code>Steam_backup</code><br>2. Delete all Gamescope state &amp; config (<code>~/.local/state/gamescope</code> and <code>~/.config/gamescope</code>)<br><br>Use this when your Deck is stuck in a <strong>boot loop</strong>. You will need to <strong>reboot</strong> and <strong>sign in to Steam</strong> again afterward.<br><br>It will create backup folders which may have a <strong>very large size</strong> depending on how much you have installed on your Deck. You will be asked if you want to delete these backup folders after the reset completes.`,
+    body: `This script will do the following:<br><br>1. Rename your Steam directory to <code>Steam_backup</code><br>2. Delete all Gamescope state &amp; config<br><br>Use this when your Deck is stuck in a <strong>boot loop</strong>. You will need to <strong>reboot</strong> and <strong>sign in to Steam</strong> again afterward.<br><br>It will create backup folders which may have a <strong>very large size</strong> depending on how much you have installed on your Deck. You will be asked if you want to delete these backup folders after the reset completes.`,
     action: () => runFullRecovery()
   }
 };
@@ -779,7 +731,7 @@ async function runCue() {
     }
     openConsole('Generate .cue');
     for (const r of result.results) {
-      const prefix = r.status === 'ok' ? '✓' : r.status === 'skipped' ? '⊘' : '✕';
+      const prefix = r.status === 'ok' ? '>' : r.status === 'skipped' ? '-' : 'x';
       appendConsole(`${prefix}  ${r.file}: ${r.msg}`);
     }
     const ok = result.results.every(r => r.status !== 'error');
@@ -795,7 +747,7 @@ async function runCue() {
 async function runMaintenance() {
   disableBtn('btnMaint');
   openConsole('Weekly Maintenance');
-  appendConsole('Starting maintenance — this may take several minutes…\n');
+  appendConsole('Starting maintenance - this may take several minutes...\n');
   try {
     const result = await invoke('run_maintenance');
     appendConsole(result.stdout);

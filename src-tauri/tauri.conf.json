@@ -13,9 +13,11 @@
         "width": 900,
         "height": 740,
         "minWidth": 600,
-        "minHeight": 500
+        "minHeight": 500,
+        "maximized": true
       }
     ],
+    "withGlobalTauri": true,
     "security": {
       "csp": "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'"
     }
