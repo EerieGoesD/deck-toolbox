@@ -1,51 +1,12 @@
 {
-  "name": "steamdeck-toolbox",
+  "name": "deck-toolbox",
   "version": "1.0.0",
-  "description": "Steam Deck Toolbox — Quick-fix scripts with a modern GUI",
-  "main": "main.js",
+  "description": "Steam Deck Toolbox - Quick-fix scripts with a modern GUI (Tauri)",
   "scripts": {
-    "start": "electron .",
-    "pack": "electron-builder --linux flatpak",
-    "dist": "electron-builder --linux flatpak"
+    "tauri": "cargo tauri",
+    "dev": "cargo tauri dev",
+    "build": "cargo tauri build"
   },
   "author": "EERIE",
-  "license": "MIT",
-  "devDependencies": {
-    "electron": "^33.0.0",
-    "electron-builder": "^25.1.8"
-  },
-  "build": {
-    "appId": "io.github.EerieGoesD.DeckToolbox",
-    "productName": "Deck Toolbox",
-    "linux": {
-      "target": [
-        "flatpak"
-      ],
-      "category": "Utility",
-      "icon": "icon.png"
-    },
-    "flatpak": {
-      "runtimeVersion": "24.08",
-      "runtime": "org.freedesktop.Platform",
-      "sdk": "org.freedesktop.Sdk",
-      "base": "org.electronjs.Electron2.BaseApp",
-      "baseVersion": "24.08",
-      "finishArgs": [
-        "--share=ipc",
-        "--socket=x11",
-        "--socket=wayland",
-        "--filesystem=home",
-        "--filesystem=/run/media",
-        "--talk-name=org.freedesktop.Flatpak",
-        "--talk-name=org.freedesktop.portal.FileChooser"
-      ]
-    },
-    "files": [
-      "main.js",
-      "preload.js",
-      "index.html",
-      "scripts/**/*",
-      "icon.png"
-    ]
-  }
+  "license": "MIT"
 }

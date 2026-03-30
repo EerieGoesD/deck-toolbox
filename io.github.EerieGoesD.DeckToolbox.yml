@@ -2,34 +2,43 @@ app-id: io.github.EerieGoesD.DeckToolbox
 runtime: org.freedesktop.Platform
 runtime-version: '24.08'
 sdk: org.freedesktop.Sdk
-base: org.electronjs.Electron2.BaseApp
-base-version: '24.08'
 sdk-extensions:
-  - org.freedesktop.Sdk.Extension.node20
-command: run.sh
+  - org.freedesktop.Sdk.Extension.rust-stable
+command: deck-toolbox
 separate-locales: false
 
 finish-args:
   - --share=ipc
   - --socket=x11
   - --socket=wayland
+  - --device=dri
   - --filesystem=home
   - --filesystem=/run/media
   - --talk-name=org.freedesktop.Flatpak
 
 modules:
+  - name: webkit2gtk
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DPORT=GTK
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DENABLE_GAMEPAD=OFF
+      - -DENABLE_SPELLCHECK=OFF
+      - -DUSE_SOUP2=OFF
+    sources:
+      - type: archive
+        url: https://webkitgtk.org/releases/webkitgtk-2.44.0.tar.xz
+        sha256: c66530e41ba59b1edba4ee89ef20b2188e273bed0497e95084729e3c0e2b0571
+
   - name: deck-toolbox
     buildsystem: simple
     build-options:
-      append-path: /usr/lib/sdk/node20/bin
+      append-path: /usr/lib/sdk/rust-stable/bin
       env:
-        npm_config_nodedir: /usr/lib/sdk/node20/include/node
+        CARGO_HOME: /run/build/deck-toolbox/cargo
     build-commands:
-      - . ./flatpak-node/patch-all.sh
-      - npm install --offline --cache=$FLATPAK_BUILDER_BUILDDIR/flatpak-node/cache
-      - npx electron-builder --linux dir
-      - cp -r dist/linux-unpacked /app/main
-      - install -Dm755 run.sh /app/bin/run.sh
+      - cargo build --release --manifest-path src-tauri/Cargo.toml
+      - install -Dm755 src-tauri/target/release/deck-toolbox /app/bin/deck-toolbox
       - install -Dm644 io.github.EerieGoesD.DeckToolbox.desktop /app/share/applications/io.github.EerieGoesD.DeckToolbox.desktop
       - install -Dm644 io.github.EerieGoesD.DeckToolbox.metainfo.xml /app/share/metainfo/io.github.EerieGoesD.DeckToolbox.metainfo.xml
       - install -Dm644 icons/io.github.EerieGoesD.DeckToolbox.png /app/share/icons/hicolor/256x256/apps/io.github.EerieGoesD.DeckToolbox.png
@@ -37,6 +46,3 @@ modules:
       - type: git
         url: https://github.com/EerieGoesD/deck-toolbox
         branch: main
-      - generated-sources.json
-      - type: file
-        path: run.sh
