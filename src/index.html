@@ -250,63 +250,6 @@ header::after {
 .tool-btn.warn { background: var(--warn); color: #1a1a24; }
 .tool-btn.warn:hover:not(:disabled) { background: #fad36a; box-shadow: 0 3px 14px rgba(249,199,79,0.2); }
 
-/* ── Tooltip ── */
-.tip-wrap {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.tip-icon {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--surface2);
-  color: var(--muted);
-  font-family: var(--sans);
-  font-size: 12px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: help;
-  flex-shrink: 0;
-}
-
-.tip-icon:hover { color: var(--text); border-color: var(--accent); }
-
-.tip-wrap:hover .tooltip {
-  display: block;
-}
-
-.tooltip {
-  display: none;
-  position: absolute;
-  bottom: calc(100% + 10px);
-  right: -8px;
-  width: 300px;
-  background: #1e1e2e;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 12px 14px;
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text);
-  line-height: 1.7;
-  z-index: 50;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-  pointer-events: none;
-}
-
-.tooltip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  right: 16px;
-  border: 6px solid transparent;
-  border-top-color: #1e1e2e;
-}
-
 /* ── Right Panel (terminal) ── */
 .panel-right {
   width: 480px;
@@ -431,7 +374,10 @@ header::after {
 }
 
 .confirm-title { font-weight: 800; font-size: 16px; color: #fff; margin-bottom: 4px; }
-.confirm-subtitle { font-family: var(--mono); font-size: 12px; color: var(--danger); letter-spacing: 1px; text-transform: uppercase; }
+.confirm-subtitle { font-family: var(--mono); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+.confirm-subtitle.safe { color: var(--success); }
+.confirm-subtitle.caution { color: var(--warn); }
+.confirm-subtitle.destructive { color: var(--danger); }
 
 .confirm-body {
   padding: 18px 20px;
@@ -498,26 +444,23 @@ header::after {
 
     <div class="tab-content active" data-tab="utilities">
       <div class="tool-card">
-        <div class="tip-wrap"><div class="tip-icon">?</div><div class="tooltip">Creates a .cue sheet for each selected .bin file using MODE2/2352 format with a single track. Skips files that already have a .cue. Does not modify your .bin files.</div></div>
         <div class="tool-info">
           <div class="tool-name">Generate .cue from .bin</div>
           <div class="tool-desc">Create matching .cue files for retro disc images.</div>
         </div>
-        <button class="tool-btn primary" id="btnCue" onclick="runCue()">Run</button>
+        <button class="tool-btn primary" id="btnCue" onclick="confirmAction('cue')">Run</button>
       </div>
       <div class="tool-card">
-        <div class="tip-wrap"><div class="tip-icon">?</div><div class="tooltip">Runs Flatpak updates (user + system), journal rotation and vacuum, filesystem TRIM, temp file cleanup, thumbnail cache cleanup, disk usage checks, and SMART health checks. Logs to ~/.local/state/steamdeck-maintenance/logs/.</div></div>
         <div class="tool-info">
           <div class="tool-name">Weekly Maintenance</div>
           <div class="tool-desc">Flatpak updates, journal vacuum, TRIM, temp cleanup, disk checks.</div>
         </div>
-        <button class="tool-btn green" id="btnMaint" onclick="runMaintenance()">Run</button>
+        <button class="tool-btn green" id="btnMaint" onclick="confirmAction('maintenance')">Run</button>
       </div>
     </div>
 
     <div class="tab-content" data-tab="resets">
       <div class="tool-card">
-        <div class="tip-wrap"><div class="tip-icon">?</div><div class="tooltip">Renames ~/.local/share/Steam to Steam_backup (with timestamp if a backup already exists). Steam will create a fresh directory on next launch. You will need to sign in again. Games on SD card or other drives are not affected. You can delete the backup folder afterward to free space.</div></div>
         <div class="tool-info">
           <div class="tool-name">Reset Steam Client</div>
           <div class="tool-desc">Backup and reset the Steam directory. Sign-in required after.</div>
@@ -525,7 +468,6 @@ header::after {
         <button class="tool-btn warn" id="btnSteam" onclick="confirmAction('steam')">Run</button>
       </div>
       <div class="tool-card">
-        <div class="tip-wrap"><div class="tip-icon">?</div><div class="tooltip">Deletes ~/.local/state/gamescope and ~/.config/gamescope. This fixes display glitches, resolution issues, and rendering problems. A reboot is recommended afterward. No user data is lost.</div></div>
         <div class="tool-info">
           <div class="tool-name">Reset Gamescope</div>
           <div class="tool-desc">Clear Gamescope state/config. Fixes display glitches.</div>
@@ -536,31 +478,27 @@ header::after {
 
     <div class="tab-content" data-tab="roms">
       <div class="tool-card">
-        <div class="tip-wrap"><div class="tip-icon">?</div><div class="tooltip">Scans each console folder in your ROMs directory. Normalizes filenames (strips punctuation, ignores case) to catch near-duplicates like "Game (USA).zip" and "game_usa.zip". Only checks within the same console folder. Does not delete anything - just reports.</div></div>
         <div class="tool-info">
           <div class="tool-name">Duplicate ROM Finder</div>
           <div class="tool-desc">Find near-duplicate ROMs per console folder.</div>
         </div>
-        <button class="tool-btn primary" id="btnDupeRom" onclick="runDuplicateRomFinder()">Run</button>
+        <button class="tool-btn primary" id="btnDupeRom" onclick="confirmAction('dupeRom')">Run</button>
       </div>
       <div class="tool-card">
-        <div class="tip-wrap"><div class="tip-icon">?</div><div class="tooltip">Searches /home/deck and /run/media/deck for ROM file extensions (.iso, .chd, .nsp, .gba, etc.) that are outside of your standard EmuDeck roms directories. Skips Steam, flatpak, cache, and other system folders. Does not delete anything - just reports.</div></div>
         <div class="tool-info">
           <div class="tool-name">Find Lost ROMs</div>
           <div class="tool-desc">Find ROM files outside standard EmuDeck directories.</div>
         </div>
-        <button class="tool-btn primary" id="btnLostRoms" onclick="runFindLostRoms()">Run</button>
+        <button class="tool-btn primary" id="btnLostRoms" onclick="confirmAction('lostRoms')">Run</button>
       </div>
       <div class="tool-card">
-        <div class="tip-wrap"><div class="tip-icon">?</div><div class="tooltip">Scans all ROM directories and lists every file sorted by size (largest first). Useful for identifying which games take up the most space on your SD card or internal storage. Does not delete anything.</div></div>
         <div class="tool-info">
           <div class="tool-name">ROM Size Sorter</div>
           <div class="tool-desc">List all ROMs sorted by file size, largest first.</div>
         </div>
-        <button class="tool-btn primary" id="btnRomSort" onclick="runRomSizeSorter()">Run</button>
+        <button class="tool-btn primary" id="btnRomSort" onclick="confirmAction('romSort')">Run</button>
       </div>
       <div class="tool-card">
-        <div class="tip-wrap"><div class="tip-icon">?</div><div class="tooltip">Deletes the downloaded_media folder from EmuDeck/Emulation/tools/ and removes all gamelist.xml files from both EmuDeck and ES-DE config directories. Your actual ROM files are not touched. Run this before re-scraping artwork.</div></div>
         <div class="tool-info">
           <div class="tool-name">Remove ROMs Metadata</div>
           <div class="tool-desc">Clear scraped artwork and gamelist.xml files.</div>
@@ -571,15 +509,13 @@ header::after {
 
     <div class="tab-content" data-tab="storage">
       <div class="tool-card">
-        <div class="tip-wrap"><div class="tip-icon">?</div><div class="tooltip">Scans /home/deck and /run/media/deck for the largest files and directories combined, then shows the top 50 results sorted by size. Useful for finding what is eating your storage. Does not delete anything.</div></div>
         <div class="tool-info">
           <div class="tool-name">Large File Finder</div>
           <div class="tool-desc">Find the biggest files and folders on your Deck.</div>
         </div>
-        <button class="tool-btn primary" id="btnLargeFile" onclick="runLargeFileFinder()">Run</button>
+        <button class="tool-btn primary" id="btnLargeFile" onclick="confirmAction('largeFile')">Run</button>
       </div>
       <div class="tool-card">
-        <div class="tip-wrap"><div class="tip-icon">?</div><div class="tooltip">Removes a predefined list of known clutter: old .flatpak installers, stale build caches (.flatpak-builder, go-build), leftover AppImages, ULWGL launcher archives, and winetricks caches. Only targets specific known-safe paths.</div></div>
         <div class="tool-info">
           <div class="tool-name">Deck Declutter</div>
           <div class="tool-desc">Remove known clutter files, caches, and old installers.</div>
@@ -590,15 +526,13 @@ header::after {
 
     <div class="tab-content" data-tab="decky">
       <div class="tool-card">
-        <div class="tip-wrap"><div class="tip-icon">?</div><div class="tooltip">Checks known Decky Loader paths (~/homebrew, ~/.local/share/decky, ~/.config/decky, systemd services) and searches for any remaining files with "decky" or "plugin_loader" in the name. Shows file sizes. Does not delete anything.</div></div>
         <div class="tool-info">
           <div class="tool-name">Find Decky Leftovers</div>
           <div class="tool-desc">Search for leftover Decky Loader files after uninstall.</div>
         </div>
-        <button class="tool-btn primary" id="btnDeckyLeftovers" onclick="runFindDeckyLeftovers()">Run</button>
+        <button class="tool-btn primary" id="btnDeckyLeftovers" onclick="confirmAction('deckyLeftovers')">Run</button>
       </div>
       <div class="tool-card">
-        <div class="tip-wrap"><div class="tip-icon">?</div><div class="tooltip">Downloads and runs the official SteamDeckHomebrew uninstall script from GitHub, then removes leftover services, logs, loader config, and template plugin data. Your personal plugins and their data are kept. Requires internet.</div></div>
         <div class="tool-info">
           <div class="tool-name">Uninstall Decky Loader</div>
           <div class="tool-desc">Run official uninstall and clean up system files.</div>
@@ -609,7 +543,6 @@ header::after {
 
     <div class="tab-content" data-tab="recovery">
       <div class="tool-card">
-        <div class="tip-wrap"><div class="tip-icon">?</div><div class="tooltip">Combines Steam reset + Gamescope reset in one step. Renames the Steam directory to Steam_backup (with timestamp) and deletes all Gamescope state and config. Use this when your Deck is stuck in a boot loop. Reboot after, then sign in to Steam again.</div></div>
         <div class="tool-info">
           <div class="tool-name">Full Recovery (Steam + Gamescope)</div>
           <div class="tool-desc">Nuclear option for boot loops. Resets Steam and Gamescope.</div>
@@ -628,6 +561,7 @@ header::after {
       <div class="terminal-actions">
         <button class="terminal-action-btn" onclick="copyTerminal()">Copy All</button>
         <button class="terminal-action-btn" onclick="exportTerminal()">Export</button>
+        <button class="terminal-action-btn" onclick="clearTerminal()">Clear</button>
       </div>
     </div>
     <div class="terminal-placeholder" id="termPlaceholder">Select a tool and click Run.<br>Output will appear here.</div>
@@ -641,7 +575,7 @@ header::after {
   <div class="confirm-box">
     <div class="confirm-header">
       <div class="confirm-title" id="confirmTitle">Are you sure?</div>
-      <div class="confirm-subtitle">Destructive action</div>
+      <div class="confirm-subtitle" id="confirmSubtitle">Destructive action</div>
     </div>
     <div class="confirm-body" id="confirmBody"></div>
     <div class="confirm-actions">
@@ -727,6 +661,14 @@ function setTermStatus(type) {
   el.textContent = labels[type] || type;
 }
 
+function clearTerminal() {
+  document.getElementById('termBody').innerHTML = '';
+  document.getElementById('termBody').style.display = 'none';
+  document.getElementById('termPlaceholder').style.display = '';
+  document.getElementById('termTitle').textContent = 'Terminal';
+  setTermStatus('idle');
+}
+
 function copyTerminal() {
   const body = document.getElementById('termBody');
   const text = body.innerText;
@@ -753,34 +695,95 @@ function exportTerminal() {
 // ─────────────────────────────────────────────
 
 const CONFIRM_DATA = {
+  cue: {
+    title: 'Generate .cue from .bin',
+    severity: 'safe',
+    label: 'Read-only operation',
+    body: `This will:<br><br>&#8226; Open a file picker to select <code>.bin</code> disc image files<br>&#8226; Create a matching <code>.cue</code> sheet for each file (MODE2/2352, single track)<br>&#8226; Skip any files that already have a <code>.cue</code><br><br>Your <code>.bin</code> files will <strong>not</strong> be modified.`,
+    action: () => runCue()
+  },
+  maintenance: {
+    title: 'Weekly Maintenance',
+    severity: 'caution',
+    label: 'System maintenance',
+    body: `This will run the following tasks:<br><br>&#8226; <strong>Flatpak</strong> - update apps/runtimes, remove unused (user + system)<br>&#8226; <strong>Journals</strong> - rotate and vacuum system/user logs<br>&#8226; <strong>TRIM</strong> - run filesystem TRIM on all mounted drives<br>&#8226; <strong>Cleanup</strong> - delete old temp files and thumbnail cache<br>&#8226; <strong>Health</strong> - disk usage warnings and SMART checks<br><br>Logs are saved to <code>~/.local/state/steamdeck-maintenance/logs/</code>.<br>Requires <strong>sudo</strong> for system-level tasks (TRIM, system Flatpaks, journal).`,
+    action: () => runMaintenance()
+  },
   steam: {
-    title: 'Reset Steam Client?',
-    body: `This will:<br><br>&#8226; Rename your <code>~/.local/share/Steam</code> to <code>Steam_backup</code><br>&#8226; Steam will need a fresh setup on next launch<br>&#8226; You will need to <strong>sign in again</strong><br>&#8226; Games on SD card or other drives are safe<br><br>Backup folders can be <strong>very large</strong>. You will be asked if you want to delete them after.`,
+    title: 'Reset Steam Client',
+    severity: 'destructive',
+    label: 'Destructive action',
+    body: `This will:<br><br>&#8226; Rename <code>~/.local/share/Steam</code> to <code>Steam_backup</code><br>&#8226; If a backup already exists, a timestamp is appended<br>&#8226; Steam will create a fresh directory on next launch<br>&#8226; You will need to <strong>sign in again</strong><br>&#8226; Non-default install locations will need to be re-added<br>&#8226; Games on SD card or other drives are <strong>safe</strong><br><br>Backup folders can be <strong>very large</strong>. You will be asked if you want to delete them after.`,
     action: () => runSteamReset()
   },
   gamescope: {
-    title: 'Reset Gamescope?',
-    body: `This will delete:<br>&#8226; <code>~/.local/state/gamescope</code><br>&#8226; <code>~/.config/gamescope</code><br><br>Fixes display and resolution glitches. <strong>Reboot recommended</strong> after.`,
+    title: 'Reset Gamescope',
+    severity: 'destructive',
+    label: 'Destructive action',
+    body: `This will delete:<br><br>&#8226; <code>~/.local/state/gamescope</code><br>&#8226; <code>~/.config/gamescope</code><br><br>Fixes display glitches, resolution issues, and rendering problems. No user data is lost. <strong>Reboot recommended</strong> after.`,
     action: () => runGamescopeReset()
   },
+  dupeRom: {
+    title: 'Duplicate ROM Finder',
+    severity: 'safe',
+    label: 'Read-only scan',
+    body: `This will:<br><br>&#8226; Scan each console folder in your ROMs directory<br>&#8226; Normalize filenames (strip punctuation, ignore case) to catch near-duplicates<br>&#8226; Example: <code>Game (USA).zip</code> and <code>game_usa.zip</code> would be flagged<br>&#8226; Only checks within the same console folder<br><br><strong>Nothing is deleted</strong> - this only reports what it finds.`,
+    action: () => runDuplicateRomFinder()
+  },
+  lostRoms: {
+    title: 'Find Lost ROMs',
+    severity: 'safe',
+    label: 'Read-only scan',
+    body: `This will:<br><br>&#8226; Search <code>/home/deck</code> and <code>/run/media/deck</code> for ROM file extensions (.iso, .chd, .nsp, .gba, etc.)<br>&#8226; Exclude your standard EmuDeck roms directories from results<br>&#8226; Skip Steam, flatpak, cache, and other system folders<br><br><strong>Nothing is deleted</strong> - this only reports misplaced or forgotten ROMs.`,
+    action: () => runFindLostRoms()
+  },
+  romSort: {
+    title: 'ROM Size Sorter',
+    severity: 'safe',
+    label: 'Read-only scan',
+    body: `This will:<br><br>&#8226; Scan all ROM directories<br>&#8226; List every ROM file sorted by size (largest first)<br>&#8226; Shows file sizes to help identify space hogs<br><br><strong>Nothing is deleted</strong> - this only reports what it finds.`,
+    action: () => runRomSizeSorter()
+  },
   romMetadata: {
-    title: 'Remove ROMs Metadata?',
-    body: `This will delete:<br><br>&#8226; All downloaded media from <code>EmuDeck/Emulation/tools/downloaded_media/</code><br>&#8226; All <code>gamelist.xml</code> files from EmuDeck and ES-DE<br><br>Your ROMs will <strong>not</strong> be affected. Useful for a clean scrape.`,
+    title: 'Remove ROMs Metadata',
+    severity: 'destructive',
+    label: 'Destructive action',
+    body: `This will delete:<br><br>&#8226; All downloaded media from <code>EmuDeck/Emulation/tools/downloaded_media/</code><br>&#8226; All <code>gamelist.xml</code> files from EmuDeck and ES-DE<br><br>Your actual <strong>ROM files are not touched</strong>. Run this before re-scraping artwork.`,
     action: () => runRemoveRomsMetadata()
   },
+  largeFile: {
+    title: 'Large File Finder',
+    severity: 'safe',
+    label: 'Read-only scan',
+    body: `This will:<br><br>&#8226; Scan <code>/home/deck</code> and <code>/run/media/deck</code><br>&#8226; Find the largest files and directories<br>&#8226; Show the top 50 results sorted by size<br><br><strong>Nothing is deleted</strong> - this only reports what is using your storage.`,
+    action: () => runLargeFileFinder()
+  },
   declutter: {
-    title: 'Deck Declutter?',
-    body: `This will delete known clutter:<br><br>&#8226; Old <code>.flatpak</code> installers<br>&#8226; Stale build caches<br>&#8226; Leftover AppImages and archives<br>&#8226; Winetricks caches<br><br>Only known safe-to-delete items are targeted.`,
+    title: 'Deck Declutter',
+    severity: 'destructive',
+    label: 'Destructive action',
+    body: `This will scan for and delete known clutter:<br><br>&#8226; Old <code>.flatpak</code> installer files<br>&#8226; Stale build caches (<code>.flatpak-builder</code>, <code>go-build</code>)<br>&#8226; Leftover AppImages and launcher archives<br>&#8226; Winetricks caches<br><br>Only <strong>known safe-to-delete</strong> items at specific paths are targeted.`,
     action: () => runDeckDeclutter()
   },
+  deckyLeftovers: {
+    title: 'Find Decky Leftovers',
+    severity: 'safe',
+    label: 'Read-only scan',
+    body: `This will:<br><br>&#8226; Check known Decky Loader paths (<code>~/homebrew</code>, <code>~/.local/share/decky</code>, <code>~/.config/decky</code>, systemd services)<br>&#8226; Search for any remaining files with "decky" or "plugin_loader" in the name<br>&#8226; Show file sizes and locations<br><br><strong>Nothing is deleted</strong> - this only reports what it finds.`,
+    action: () => runFindDeckyLeftovers()
+  },
   uninstallDecky: {
-    title: 'Uninstall Decky Loader?',
-    body: `This will:<br><br>1. Run the <strong>official uninstall script</strong> from GitHub<br>2. Clean up services, logs, and configs<br><br>Personal plugin data is kept. Requires <strong>internet</strong>.`,
+    title: 'Uninstall Decky Loader',
+    severity: 'destructive',
+    label: 'Destructive action',
+    body: `This will:<br><br>1. Download and run the <strong>official SteamDeckHomebrew uninstall script</strong><br>2. Remove leftover services, logs, loader config, and template plugins<br><br>Your personal plugins and their data are <strong>kept</strong>. Requires an <strong>internet connection</strong>.`,
     action: () => runUninstallDecky()
   },
   recovery: {
-    title: 'Full Recovery?',
-    body: `This will:<br><br>1. Rename Steam directory to <code>Steam_backup</code><br>2. Delete all Gamescope state and config<br><br>Use when stuck in a <strong>boot loop</strong>. <strong>Reboot</strong> and sign in again after.<br><br>Backup folders can be very large. You will be asked if you want to delete them after.`,
+    title: 'Full Recovery',
+    severity: 'destructive',
+    label: 'Destructive action',
+    body: `This will:<br><br>1. Rename Steam directory to <code>Steam_backup</code> (with timestamp)<br>2. Delete all Gamescope state and config<br><br>Use when your Deck is stuck in a <strong>boot loop</strong>. You will need to <strong>reboot</strong> and <strong>sign in to Steam</strong> again.<br><br>Backup folders can be very large. You will be asked if you want to delete them after.`,
     action: () => runFullRecovery()
   }
 };
@@ -789,8 +792,12 @@ function confirmAction(key) {
   const data = CONFIRM_DATA[key];
   document.getElementById('confirmTitle').textContent = data.title;
   document.getElementById('confirmBody').innerHTML = data.body;
-  document.getElementById('confirmYes').textContent = 'Confirm';
+  const sub = document.getElementById('confirmSubtitle');
+  sub.textContent = data.label;
+  sub.className = 'confirm-subtitle ' + data.severity;
   const yesBtn = document.getElementById('confirmYes');
+  yesBtn.textContent = data.severity === 'safe' ? 'Run' : 'Confirm';
+  yesBtn.className = 'tool-btn ' + (data.severity === 'destructive' ? 'danger' : data.severity === 'caution' ? 'warn' : 'primary');
   yesBtn.onclick = () => { closeConfirm(); data.action(); };
   document.getElementById('confirmOverlay').classList.add('open');
 }
