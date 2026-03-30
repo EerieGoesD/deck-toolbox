@@ -1,7 +1,12 @@
 use super::scripts::ScriptResult;
 
 #[tauri::command]
-pub fn delete_steam_backups() -> Result<ScriptResult, String> {
+pub async fn delete_steam_backups() -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(delete_steam_backups_sync)
+        .await.map_err(|e| e.to_string())?
+}
+
+fn delete_steam_backups_sync() -> Result<ScriptResult, String> {
     let home = dirs::home_dir().ok_or("Cannot find home directory")?;
     let share_dir = home.join(".local").join("share");
 

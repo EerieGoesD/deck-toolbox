@@ -53,7 +53,13 @@ fn run_script_internal(
 }
 
 #[tauri::command]
-pub fn cache_sudo(password: String) -> Result<ScriptResult, String> {
+pub async fn cache_sudo(password: String) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || cache_sudo_sync(password))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+fn cache_sudo_sync(password: String) -> Result<ScriptResult, String> {
     let mut child = Command::new("sudo")
         .args(["-S", "-v"])
         .stdin(Stdio::piped())
@@ -76,70 +82,79 @@ pub fn cache_sudo(password: String) -> Result<ScriptResult, String> {
 }
 
 #[tauri::command]
-pub fn run_maintenance(app: AppHandle) -> Result<ScriptResult, String> {
-    run_script_internal(&app, "maintenance.sh", &[])
+pub async fn run_maintenance(app: AppHandle) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "maintenance.sh", &[]))
+        .await.map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-pub fn steam_reset(app: AppHandle) -> Result<ScriptResult, String> {
-    run_script_internal(&app, "steam-reset.sh", &[])
+pub async fn steam_reset(app: AppHandle) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "steam-reset.sh", &[]))
+        .await.map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-pub fn gamescope_reset(app: AppHandle) -> Result<ScriptResult, String> {
-    run_script_internal(&app, "gamescope-reset.sh", &[])
+pub async fn gamescope_reset(app: AppHandle) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "gamescope-reset.sh", &[]))
+        .await.map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-pub fn full_recovery(app: AppHandle) -> Result<ScriptResult, String> {
-    run_script_internal(&app, "full-recovery.sh", &[])
+pub async fn full_recovery(app: AppHandle) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "full-recovery.sh", &[]))
+        .await.map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-pub fn duplicate_rom_finder(app: AppHandle) -> Result<ScriptResult, String> {
-    run_script_internal(&app, "duplicate_rom_finder.sh", &[])
+pub async fn duplicate_rom_finder(app: AppHandle) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "duplicate_rom_finder.sh", &[]))
+        .await.map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-pub fn find_decky_leftovers(app: AppHandle) -> Result<ScriptResult, String> {
-    run_script_internal(&app, "find_decky_leftovers.sh", &[])
+pub async fn find_decky_leftovers(app: AppHandle) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "find_decky_leftovers.sh", &[]))
+        .await.map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-pub fn find_lost_roms(app: AppHandle) -> Result<ScriptResult, String> {
-    run_script_internal(&app, "find_lost_roms.sh", &[])
+pub async fn find_lost_roms(app: AppHandle) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "find_lost_roms.sh", &[]))
+        .await.map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-pub fn large_file_finder(
+pub async fn large_file_finder(
     app: AppHandle,
     exclude_roms: String,
     mode: String,
     count: String,
 ) -> Result<ScriptResult, String> {
-    run_script_internal(
-        &app,
-        "large_file_finder.sh",
-        &[&exclude_roms, &mode, &count],
-    )
+    tauri::async_runtime::spawn_blocking(move || {
+        run_script_internal(&app, "large_file_finder.sh", &[&exclude_roms, &mode, &count])
+    }).await.map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-pub fn remove_roms_metadata(app: AppHandle) -> Result<ScriptResult, String> {
-    run_script_internal(&app, "remove_roms_metadata.sh", &[])
+pub async fn remove_roms_metadata(app: AppHandle) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "remove_roms_metadata.sh", &[]))
+        .await.map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-pub fn rom_size_sorter(app: AppHandle) -> Result<ScriptResult, String> {
-    run_script_internal(&app, "rom_size_sorter.sh", &[])
+pub async fn rom_size_sorter(app: AppHandle) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "rom_size_sorter.sh", &[]))
+        .await.map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-pub fn deck_declutter(app: AppHandle) -> Result<ScriptResult, String> {
-    run_script_internal(&app, "deck_declutter.sh", &[])
+pub async fn deck_declutter(app: AppHandle) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "deck_declutter.sh", &[]))
+        .await.map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-pub fn uninstall_decky(app: AppHandle) -> Result<ScriptResult, String> {
-    run_script_internal(&app, "uninstall_decky.sh", &[])
+pub async fn uninstall_decky(app: AppHandle) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "uninstall_decky.sh", &[]))
+        .await.map_err(|e| e.to_string())?
 }
