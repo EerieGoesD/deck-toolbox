@@ -193,16 +193,12 @@ SUDO_KA_PID=""
 if have sudo; then
   if sudo -n true >/dev/null 2>&1; then
     ROOT_OK=1
-  else
-    if sudo -v; then
-      ROOT_OK=1
-    fi
-  fi
-
-  if [[ "$ROOT_OK" -eq 1 ]]; then
     ( while sleep 60; do sudo -n true >/dev/null 2>&1 || exit 0; done ) &
     SUDO_KA_PID="$!"
     trap '[[ -n "${SUDO_KA_PID:-}" ]] && kill "$SUDO_KA_PID" >/dev/null 2>&1 || true' EXIT INT TERM
+  else
+    log "No cached sudo credentials - root tasks will be skipped."
+    log "To enable root tasks, run 'sudo -v' in a terminal before launching Deck Toolbox."
   fi
 fi
 

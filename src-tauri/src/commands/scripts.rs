@@ -1,4 +1,5 @@
-use std::process::Command;
+use std::io::Write;
+use std::process::{Command, Stdio};
 use tauri::AppHandle;
 use tauri::Manager;
 
@@ -43,6 +44,29 @@ fn run_script_internal(
         .current_dir(&home)
         .output()
         .map_err(|e| e.to_string())?;
+
+    Ok(ScriptResult {
+        code: output.status.code().unwrap_or(-1),
+        stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
+        stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
+    })
+}
+
+#[tauri::command]
+pub fn cache_sudo(password: String) -> Result<ScriptResult, String> {
+    let mut child = Command::new("sudo")
+        .args(["-S", "-v"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|e| e.to_string())?;
+
+    if let Some(mut stdin) = child.stdin.take() {
+        let _ = writeln!(stdin, "{}", password);
+    }
+
+    let output = child.wait_with_output().map_err(|e| e.to_string())?;
 
     Ok(ScriptResult {
         code: output.status.code().unwrap_or(-1),
