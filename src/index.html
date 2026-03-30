@@ -405,6 +405,69 @@ header::after {
 
 .confirm-actions .tool-btn { font-size: 14px; padding: 10px 22px; }
 
+/* ── Confirm Form Controls ── */
+.confirm-form { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+
+.confirm-field { display: flex; align-items: center; gap: 10px; }
+.confirm-field label { font-family: var(--mono); font-size: 12px; color: var(--muted); min-width: 70px; }
+.confirm-field select, .confirm-field input[type="number"] {
+  padding: 6px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  outline: none;
+}
+.confirm-field select:focus, .confirm-field input:focus { border-color: var(--accent); }
+.confirm-field input[type="number"] { width: 80px; }
+
+.path-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.path-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.path-item input {
+  flex: 1;
+  padding: 6px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+  outline: none;
+}
+.path-item input:focus { border-color: var(--accent); }
+.path-item .path-remove {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--danger);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+}
+.path-item .path-remove:hover { border-color: var(--danger); }
+.path-add {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 5px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--accent);
+  cursor: pointer;
+  width: fit-content;
+}
+.path-add:hover { border-color: var(--accent); }
+
+/* ── Terminal Expand ── */
+.panel-right.expanded { width: 100%; position: absolute; inset: 0; z-index: 10; }
+
 </style>
 </head>
 <body>
@@ -556,6 +619,7 @@ header::after {
   <!-- ═══ RIGHT PANEL: Terminal ═══ -->
   <div class="panel-right">
     <div class="terminal-header">
+      <button class="terminal-action-btn" id="termExpand" onclick="toggleTermExpand()" title="Expand">&larr;</button>
       <div class="terminal-title" id="termTitle">Terminal</div>
       <span class="terminal-status idle" id="termStatus">Idle</span>
       <div class="terminal-actions">
@@ -727,8 +791,13 @@ const CONFIRM_DATA = {
     title: 'Duplicate ROM Finder',
     severity: 'safe',
     label: 'Read-only scan',
-    body: `This will:<br><br>&#8226; Scan each console folder in your ROMs directory<br>&#8226; Normalize filenames (strip punctuation, ignore case) to catch near-duplicates<br>&#8226; Example: <code>Game (USA).zip</code> and <code>game_usa.zip</code> would be flagged<br>&#8226; Only checks within the same console folder<br><br><strong>Nothing is deleted</strong> - this only reports what it finds.`,
-    action: () => runDuplicateRomFinder()
+    body: `This will scan each console folder for near-duplicate ROM files using normalized filenames (strips punctuation, ignores case).<br><br><strong>Nothing is deleted</strong> - this only reports what it finds.<br><div class="confirm-form"><label style="min-width:0;color:var(--text);font-size:13px;">Search paths:</label><div class="path-list" id="dupeRomPaths"></div><button class="path-add" onclick="addDupeRomPath()">+ Add path</button></div>`,
+    action: () => runDuplicateRomFinder(),
+    onOpen: () => {
+      const list = document.getElementById('dupeRomPaths');
+      list.innerHTML = '';
+      ['/run/media/EmuDeck/Emulation/roms', '/home/deck/Emulation/roms'].forEach(p => addDupeRomPathValue(p));
+    }
   },
   lostRoms: {
     title: 'Find Lost ROMs',
@@ -755,7 +824,7 @@ const CONFIRM_DATA = {
     title: 'Large File Finder',
     severity: 'safe',
     label: 'Read-only scan',
-    body: `This will:<br><br>&#8226; Scan <code>/home/deck</code> and <code>/run/media/deck</code><br>&#8226; Find the largest files and directories<br>&#8226; Show the top 50 results sorted by size<br><br><strong>Nothing is deleted</strong> - this only reports what is using your storage.`,
+    body: `Scans your Deck for the largest items sorted by size.<br><strong>Nothing is deleted</strong> - this only reports what is using your storage.<br><div class="confirm-form"><div class="confirm-field"><label>Show:</label><select id="lfMode"><option value="3" selected>Files and Folders</option><option value="1">Files only</option><option value="2">Folders only</option></select></div><div class="confirm-field"><label>Top:</label><input type="number" id="lfCount" value="50" min="1" max="500" /> <span style="font-family:var(--mono);font-size:12px;color:var(--muted);">results</span></div><div class="confirm-field"><label>ROMs:</label><select id="lfExclude"><option value="n" selected>Include ROMs</option><option value="y">Exclude ROMs</option></select></div></div>`,
     action: () => runLargeFileFinder()
   },
   declutter: {
@@ -800,6 +869,7 @@ function confirmAction(key) {
   yesBtn.className = 'tool-btn ' + (data.severity === 'destructive' ? 'danger' : data.severity === 'caution' ? 'warn' : 'primary');
   yesBtn.onclick = () => { closeConfirm(); data.action(); };
   document.getElementById('confirmOverlay').classList.add('open');
+  if (data.onOpen) data.onOpen();
 }
 
 function closeConfirm() {
@@ -900,11 +970,14 @@ async function runFullRecovery() {
 }
 
 async function runDuplicateRomFinder() {
+  const pathInputs = document.querySelectorAll('#dupeRomPaths .path-item input');
+  const paths = Array.from(pathInputs).map(i => i.value.trim()).filter(Boolean);
   disableBtn('btnDupeRom');
   openTerminal('Duplicate ROM Finder');
   appendTerminal('Scanning for duplicate ROMs...\n');
+  if (paths.length > 0) appendTerminal('Paths: ' + paths.join(', ') + '\n\n');
   try {
-    const result = await invoke('duplicate_rom_finder');
+    const result = await invoke('duplicate_rom_finder', { paths });
     appendTerminal(result.stdout);
     if (result.stderr) appendTerminal('\n--- stderr ---\n' + result.stderr);
     setTermStatus(result.code === 0 ? 'done' : 'error');
@@ -963,11 +1036,14 @@ async function runRemoveRomsMetadata() {
 }
 
 async function runLargeFileFinder() {
+  const mode = document.getElementById('lfMode')?.value || '3';
+  const count = document.getElementById('lfCount')?.value || '50';
+  const excludeRoms = document.getElementById('lfExclude')?.value || 'n';
   disableBtn('btnLargeFile');
   openTerminal('Large File Finder');
   appendTerminal('Scanning for large files... (this may take a moment)\n');
   try {
-    const result = await invoke('large_file_finder', { excludeRoms: 'n', mode: '3', count: '50' });
+    const result = await invoke('large_file_finder', { excludeRoms, mode, count });
     appendTerminal(result.stdout);
     if (result.stderr) appendTerminal('\n--- stderr ---\n' + result.stderr);
     setTermStatus(result.code === 0 ? 'done' : 'error');
@@ -1022,6 +1098,31 @@ async function runUninstallDecky() {
     setTermStatus('error');
   }
   enableBtn('btnUninstallDecky');
+}
+
+// ─────────────────────────────────────────────
+// Path list helpers (Duplicate ROM Finder)
+// ─────────────────────────────────────────────
+
+function addDupeRomPath() { addDupeRomPathValue(''); }
+
+function addDupeRomPathValue(value) {
+  const list = document.getElementById('dupeRomPaths');
+  const item = document.createElement('div');
+  item.className = 'path-item';
+  item.innerHTML = `<input type="text" value="${value}" placeholder="/path/to/roms" /><button class="path-remove" onclick="this.parentElement.remove()">x</button>`;
+  list.appendChild(item);
+}
+
+// ─────────────────────────────────────────────
+// Terminal expand toggle
+// ─────────────────────────────────────────────
+
+function toggleTermExpand() {
+  const panel = document.querySelector('.panel-right');
+  const btn = document.getElementById('termExpand');
+  panel.classList.toggle('expanded');
+  btn.innerHTML = panel.classList.contains('expanded') ? '&rarr;' : '&larr;';
 }
 
 function promptDeleteBackups() {

@@ -106,9 +106,11 @@ pub async fn full_recovery(app: AppHandle) -> Result<ScriptResult, String> {
 }
 
 #[tauri::command]
-pub async fn duplicate_rom_finder(app: AppHandle) -> Result<ScriptResult, String> {
-    tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "duplicate_rom_finder.sh", &[]))
-        .await.map_err(|e| e.to_string())?
+pub async fn duplicate_rom_finder(app: AppHandle, paths: Vec<String>) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let path_refs: Vec<&str> = paths.iter().map(|s| s.as_str()).collect();
+        run_script_internal(&app, "duplicate_rom_finder.sh", &path_refs)
+    }).await.map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
