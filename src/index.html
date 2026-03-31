@@ -345,7 +345,7 @@ header::after {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.75);
-  z-index: 200;
+  z-index: 999;
   align-items: center;
   justify-content: center;
   padding: 20px;
@@ -487,15 +487,15 @@ header::after {
       <span class="sep">|</span>
       <a href="#" onclick="openLink('https://github.com/EerieGoesD/deck-toolbox/issues')">Report Issue</a>
       <span class="sep">|</span>
-      <a href="#" onclick="openLink('https://github.com/EerieGoesD/deck-toolbox/issues/new?template=feature_request.md')">Suggest a Script</a>
+      <a href="#" onclick="openLink('https://github.com/EerieGoesD/deck-toolbox/issues/new?template=feature-request.md')">Suggest a Script</a>
     </div>
   </div>
   <div class="sudo-bar">
+    <span class="sudo-status none" id="sudoStatus">Not authenticated</span>
     <label>sudo password:</label>
     <input type="password" id="sudoPassword" placeholder="Enter password" onkeydown="if(event.key==='Enter')cacheSudo()" />
-    <button class="sudo-btn" onclick="cacheSudo()">Unlock</button>
     <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="sudoSave" style="cursor:pointer;" /> <span style="font-family:var(--mono);font-size:11px;color:var(--muted);">Remember</span></label>
-    <span class="sudo-status none" id="sudoStatus">Not authenticated</span>
+    <button class="sudo-btn" onclick="cacheSudo()">Unlock</button>
   </div>
   <nav class="tabs" style="margin-top: 10px;">
     <button class="tab active" onclick="switchTab('utilities')">Utilities</button>
