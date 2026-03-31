@@ -740,18 +740,15 @@ function copyTerminal() {
   navigator.clipboard.writeText(text);
 }
 
-function exportTerminal() {
+async function exportTerminal() {
   const body = document.getElementById('termBody');
   const text = body.innerText;
   if (!text) return;
-  const title = document.getElementById('termTitle').textContent.replace(/\s+/g, '_').toLowerCase();
-  const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-  const blob = new Blob([text], { type: 'text/plain' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `deck-toolbox_${title}_${ts}.txt`;
-  a.click();
-  URL.revokeObjectURL(a.href);
+  try {
+    await invoke('export_log', { content: text });
+  } catch (err) {
+    console.error('Export failed:', err);
+  }
 }
 
 // ─────────────────────────────────────────────

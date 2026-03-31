@@ -61,17 +61,19 @@ have() { command -v "$1" >/dev/null 2>&1; }
 with_timeout() {
   local dur="$1"; shift
   if have timeout; then
-    timeout --foreground "$dur" "$@"
+    timeout --foreground "$dur" bash -c '"$@"' _ "$@"
   else
     "$@"
   fi
 }
 
 lowprio() {
-  if have ionice; then
-    if have nice; then ionice -c2 -n7 nice -n 10 "$@"; else ionice -c2 -n7 "$@"; fi
+  if have ionice && have nice; then
+    ionice -c2 -n7 nice -n 10 "$@"
+  elif have nice; then
+    nice -n 10 "$@"
   else
-    if have nice; then nice -n 10 "$@"; else "$@"; fi
+    "$@"
   fi
 }
 
@@ -205,7 +207,7 @@ fi
 # -------------------- header --------------------
 log "Steam Deck maintenance start"
 log "Log: $LOG_FILE"
-log "User: $(id -un) UID: $(id -u) Host: $(hostname)"
+log "User: $(id -un) UID: $(id -u) Host: $(hostname 2>/dev/null || cat /etc/hostname 2>/dev/null || echo 'unknown')"
 if [[ -r /etc/os-release ]]; then
   . /etc/os-release
   log "OS: ${PRETTY_NAME:-unknown}"
@@ -225,7 +227,7 @@ if have gzip; then
 fi
 
 # -------------------- quick snapshots --------------------
-run "Disk usage (df -hT)" "-" df -hT
+run "Disk usage (df -hT)" "-" bash -c "df -hT 2>/dev/null; true"
 have lsblk && run "Block devices (lsblk)" "-" lsblk
 have free  && run "Memory usage (free -h)" "-" free -h
 

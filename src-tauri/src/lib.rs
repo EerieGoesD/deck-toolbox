@@ -1,10 +1,14 @@
 mod commands;
 
+use std::sync::Mutex;
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .manage(commands::scripts::SudoPassword(Mutex::new(None)))
         .invoke_handler(tauri::generate_handler![
             commands::scripts::cache_sudo,
+            commands::scripts::export_log,
             commands::cue::generate_cue,
             commands::scripts::run_maintenance,
             commands::scripts::steam_reset,
