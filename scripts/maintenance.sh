@@ -61,21 +61,19 @@ have() { command -v "$1" >/dev/null 2>&1; }
 with_timeout() {
   local dur="$1"; shift
   if have timeout; then
-    timeout --foreground "$dur" bash -c '"$@"' _ "$@"
+    timeout --foreground "$dur" "$@"
   else
     "$@"
   fi
 }
 
-lowprio() {
-  if have ionice && have nice; then
-    ionice -c2 -n7 nice -n 10 "$@"
-  elif have nice; then
-    nice -n 10 "$@"
-  else
-    "$@"
-  fi
-}
+# lowprio prefix - use directly before commands, not with timeout
+LP=""
+if have ionice && have nice; then
+  LP="ionice -c2 -n7 nice -n 10"
+elif have nice; then
+  LP="nice -n 10"
+fi
 
 FAILS=()
 SKIPS=()
@@ -288,22 +286,22 @@ fi
 # -------------------- Flatpak (forced non-interactive) --------------------
 if have flatpak; then
   if [[ "$HEAVY_OK" -eq 1 ]] && ( [[ "$SKIP_HEAVY_IF_OFFLINE" != "1" ]] || net_ok ); then
-    run "Flatpak (user): update appstream" "$TMO_FLATPAK" lowprio flatpak --user update --appstream -y --noninteractive
-    run "Flatpak (user): update installed apps/runtimes" "$TMO_FLATPAK" lowprio flatpak --user update -y --noninteractive
-    run "Flatpak (user): uninstall unused runtimes" "$TMO_FLATPAK" lowprio flatpak --user uninstall --unused -y --noninteractive
+    run "Flatpak (user): update appstream" "$TMO_FLATPAK" $LP flatpak --user update --appstream -y --noninteractive
+    run "Flatpak (user): update installed apps/runtimes" "$TMO_FLATPAK" $LP flatpak --user update -y --noninteractive
+    run "Flatpak (user): uninstall unused runtimes" "$TMO_FLATPAK" $LP flatpak --user uninstall --unused -y --noninteractive
 
     if [[ "$(date +%d)" == "01" ]]; then
-      run "Flatpak (user): repair (monthly)" "$TMO_FLATPAK" lowprio flatpak repair --user -y --noninteractive
+      run "Flatpak (user): repair (monthly)" "$TMO_FLATPAK" $LP flatpak repair --user -y --noninteractive
     else
       log "Flatpak (user): repair skipped (runs on day 01)"
     fi
 
     if [[ $ROOT_OK -eq 1 ]]; then
-      run "Flatpak (system): update appstream (sudo -n)" "$TMO_FLATPAK" lowprio sudo -n flatpak --system update --appstream -y --noninteractive
-      run "Flatpak (system): update installed apps/runtimes (sudo -n)" "$TMO_FLATPAK" lowprio sudo -n flatpak --system update -y --noninteractive
-      run "Flatpak (system): uninstall unused runtimes (sudo -n)" "$TMO_FLATPAK" lowprio sudo -n flatpak --system uninstall --unused -y --noninteractive
+      run "Flatpak (system): update appstream (sudo -n)" "$TMO_FLATPAK" $LP sudo -n flatpak --system update --appstream -y --noninteractive
+      run "Flatpak (system): update installed apps/runtimes (sudo -n)" "$TMO_FLATPAK" $LP sudo -n flatpak --system update -y --noninteractive
+      run "Flatpak (system): uninstall unused runtimes (sudo -n)" "$TMO_FLATPAK" $LP sudo -n flatpak --system uninstall --unused -y --noninteractive
       if [[ "$(date +%d)" == "01" ]]; then
-        run "Flatpak (system): repair (monthly, sudo -n)" "$TMO_FLATPAK" lowprio sudo -n flatpak repair --system -y --noninteractive
+        run "Flatpak (system): repair (monthly, sudo -n)" "$TMO_FLATPAK" $LP sudo -n flatpak repair --system -y --noninteractive
       else
         log "Flatpak (system): repair skipped (runs on day 01)"
       fi
@@ -329,7 +327,7 @@ fi
 # -------------------- root tasks (sudo -n only; never prompt) --------------------
 if [[ $ROOT_OK -eq 1 ]]; then
   if [[ "$HEAVY_OK" -eq 1 ]]; then
-    have fstrim && run "TRIM mounted filesystems (fstrim -av)" "$TMO_SYSTEM" lowprio sudo -n fstrim -av
+    have fstrim && run "TRIM mounted filesystems (fstrim -av)" "$TMO_SYSTEM" $LP sudo -n fstrim -av
     have systemd-tmpfiles && run "systemd-tmpfiles --clean" "$TMO_SYSTEM" sudo -n systemd-tmpfiles --clean
   else
     log "Root heavy tasks skipped (heavy tasks disabled)."
@@ -375,7 +373,7 @@ fi
 # -------------------- finish --------------------
 END_EPOCH="$(date +%s)"
 log "Steam Deck maintenance complete (elapsed $((END_EPOCH - START_EPOCH))s)"
-run "Disk usage after (df -hT)" "-" df -hT
+run "Disk usage after (df -hT)" "-" bash -c "df -hT 2>/dev/null; true"
 
 if (( ${#SKIPS[@]} > 0 )); then
   log "Summary: skipped:"

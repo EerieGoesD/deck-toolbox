@@ -482,12 +482,19 @@ header::after {
       <a href="https://eeriegoesd.com/" target="_blank" rel="noreferrer">EERIE</a>
       <span class="sep">|</span>
       <a href="https://buymeacoffee.com/eeriegoesd" target="_blank" rel="noreferrer">Buy Me a Coffee</a>
+      <span class="sep">|</span>
+      <a href="https://github.com/EerieGoesD/deck-toolbox/discussions" target="_blank" rel="noreferrer">Feedback</a>
+      <span class="sep">|</span>
+      <a href="https://github.com/EerieGoesD/deck-toolbox/issues" target="_blank" rel="noreferrer">Report Issue</a>
+      <span class="sep">|</span>
+      <a href="https://github.com/EerieGoesD/deck-toolbox/issues/new?template=feature_request.md" target="_blank" rel="noreferrer">Suggest a Script</a>
     </div>
   </div>
   <div class="sudo-bar">
     <label>sudo password:</label>
     <input type="password" id="sudoPassword" placeholder="Enter password" onkeydown="if(event.key==='Enter')cacheSudo()" />
     <button class="sudo-btn" onclick="cacheSudo()">Unlock</button>
+    <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="sudoSave" style="cursor:pointer;" /> <span style="font-family:var(--mono);font-size:11px;color:var(--muted);">Remember</span></label>
     <span class="sudo-status none" id="sudoStatus">Not authenticated</span>
   </div>
   <nav class="tabs" style="margin-top: 10px;">
@@ -670,6 +677,10 @@ async function cacheSudo() {
     if (result.code === 0) {
       status.className = 'sudo-status ok';
       status.textContent = 'Authenticated';
+      sudoAuthenticated = true;
+      if (document.getElementById('sudoSave').checked) {
+        await invoke('save_sudo_password', { password });
+      }
       input.value = '';
     } else {
       status.className = 'sudo-status fail';
@@ -680,6 +691,19 @@ async function cacheSudo() {
     status.textContent = 'Error';
   }
 }
+
+// Auto-load saved password on app start
+(async function loadSavedSudo() {
+  try {
+    const saved = await invoke('load_sudo_password');
+    if (saved) {
+      document.getElementById('sudoStatus').className = 'sudo-status ok';
+      document.getElementById('sudoStatus').textContent = 'Authenticated';
+      document.getElementById('sudoSave').checked = true;
+      sudoAuthenticated = true;
+    }
+  } catch (e) {}
+})();
 
 // ─────────────────────────────────────────────
 // Tabs
@@ -767,7 +791,8 @@ const CONFIRM_DATA = {
     title: 'Weekly Maintenance',
     severity: 'caution',
     label: 'System maintenance',
-    body: `This will run the following tasks:<br><br>&#8226; <strong>Flatpak</strong> - update apps/runtimes, remove unused (user + system)<br>&#8226; <strong>Journals</strong> - rotate and vacuum system/user logs<br>&#8226; <strong>TRIM</strong> - run filesystem TRIM on all mounted drives<br>&#8226; <strong>Cleanup</strong> - delete old temp files and thumbnail cache<br>&#8226; <strong>Health</strong> - disk usage warnings and SMART checks<br><br>Logs are saved to <code>~/.local/state/steamdeck-maintenance/logs/</code>.<br>Requires <strong>sudo</strong> for system-level tasks (TRIM, system Flatpaks, journal).`,
+    requiresSudo: true,
+    body: `This will run the following tasks:<br><br>&#8226; <strong>Flatpak</strong> - update apps/runtimes, remove unused (user + system)<br>&#8226; <strong>Journals</strong> - rotate and vacuum system/user logs<br>&#8226; <strong>TRIM</strong> - run filesystem TRIM on all mounted drives<br>&#8226; <strong>Cleanup</strong> - delete old temp files and thumbnail cache<br>&#8226; <strong>Health</strong> - disk usage warnings and SMART checks<br><br>Logs are saved to <code>~/.local/state/steamdeck-maintenance/logs/</code>.`,
     action: () => runMaintenance()
   },
   steam: {
@@ -828,6 +853,7 @@ const CONFIRM_DATA = {
     title: 'Deck Declutter',
     severity: 'destructive',
     label: 'Destructive action',
+    requiresSudo: true,
     body: `This will scan for and delete known clutter:<br><br>&#8226; Old <code>.flatpak</code> installer files<br>&#8226; Stale build caches (<code>.flatpak-builder</code>, <code>go-build</code>)<br>&#8226; Leftover AppImages and launcher archives<br>&#8226; Winetricks caches<br><br>Only <strong>known safe-to-delete</strong> items at specific paths are targeted.`,
     action: () => runDeckDeclutter()
   },
@@ -842,6 +868,7 @@ const CONFIRM_DATA = {
     title: 'Uninstall Decky Loader',
     severity: 'destructive',
     label: 'Destructive action',
+    requiresSudo: true,
     body: `This will:<br><br>1. Download and run the <strong>official SteamDeckHomebrew uninstall script</strong><br>2. Remove leftover services, logs, loader config, and template plugins<br><br>Your personal plugins and their data are <strong>kept</strong>. Requires an <strong>internet connection</strong>.`,
     action: () => runUninstallDecky()
   },
@@ -854,8 +881,26 @@ const CONFIRM_DATA = {
   }
 };
 
+let sudoAuthenticated = false;
+
 function confirmAction(key) {
   const data = CONFIRM_DATA[key];
+
+  // Block if sudo is required but not authenticated
+  if (data.requiresSudo && !sudoAuthenticated) {
+    document.getElementById('confirmTitle').textContent = 'Sudo Required';
+    const sub = document.getElementById('confirmSubtitle');
+    sub.textContent = 'Authentication needed';
+    sub.className = 'confirm-subtitle caution';
+    document.getElementById('confirmBody').innerHTML = `<strong>${data.title}</strong> requires sudo privileges.<br><br>Please enter your sudo password at the top of the app and click <strong>Unlock</strong> before running this script.`;
+    const yesBtn = document.getElementById('confirmYes');
+    yesBtn.textContent = 'OK';
+    yesBtn.className = 'tool-btn primary';
+    yesBtn.onclick = () => closeConfirm();
+    document.getElementById('confirmOverlay').classList.add('open');
+    return;
+  }
+
   document.getElementById('confirmTitle').textContent = data.title;
   document.getElementById('confirmBody').innerHTML = data.body;
   const sub = document.getElementById('confirmSubtitle');

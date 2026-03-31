@@ -139,6 +139,120 @@ pub async fn export_log(app: AppHandle, content: String) -> Result<String, Strin
     }
 }
 
+fn password_file() -> Result<std::path::PathBuf, String> {
+    let home = dirs::home_dir().ok_or("Cannot find home directory")?;
+    let dir = home.join(".config").join("deck-toolbox");
+    let _ = std::fs::create_dir_all(&dir);
+    Ok(dir.join(".credentials"))
+}
+
+#[tauri::command]
+pub async fn save_sudo_password(app: AppHandle, password: String) -> Result<(), String> {
+    use std::io::Write as _;
+    let path = password_file()?;
+    let encoded = base64_encode(&password);
+    let mut f = std::fs::File::create(&path).map_err(|e| e.to_string())?;
+    f.write_all(encoded.as_bytes()).map_err(|e| e.to_string())?;
+
+    // Also set restrictive permissions
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600));
+    }
+
+    // Store in memory too
+    let state = app.state::<SudoPassword>();
+    let mut stored = state.0.lock().unwrap();
+    *stored = Some(password);
+
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn load_sudo_password(app: AppHandle) -> Result<String, String> {
+    let path = password_file()?;
+    if !path.exists() {
+        return Ok(String::new());
+    }
+    let encoded = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    let password = base64_decode(&encoded)?;
+
+    // Validate it still works
+    let pw = password.clone();
+    let valid = tauri::async_runtime::spawn_blocking(move || {
+        let mut child = Command::new("sudo")
+            .args(["-S", "-v"])
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .ok()?;
+        if let Some(mut stdin) = child.stdin.take() {
+            let _ = writeln!(stdin, "{}", pw);
+        }
+        let output = child.wait_with_output().ok()?;
+        Some(output.status.success())
+    }).await.map_err(|e| e.to_string())?;
+
+    if valid == Some(true) {
+        let state = app.state::<SudoPassword>();
+        let mut stored = state.0.lock().unwrap();
+        *stored = Some(password.clone());
+        Ok(password)
+    } else {
+        // Password no longer valid, delete saved file
+        let _ = std::fs::remove_file(&path);
+        Ok(String::new())
+    }
+}
+
+#[tauri::command]
+pub async fn clear_sudo_password() -> Result<(), String> {
+    let path = password_file()?;
+    let _ = std::fs::remove_file(&path);
+    Ok(())
+}
+
+fn base64_encode(s: &str) -> String {
+    const CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let bytes = s.as_bytes();
+    let mut result = String::new();
+    for chunk in bytes.chunks(3) {
+        let b0 = chunk[0] as u32;
+        let b1 = if chunk.len() > 1 { chunk[1] as u32 } else { 0 };
+        let b2 = if chunk.len() > 2 { chunk[2] as u32 } else { 0 };
+        let triple = (b0 << 16) | (b1 << 8) | b2;
+        result.push(CHARS[((triple >> 18) & 0x3F) as usize] as char);
+        result.push(CHARS[((triple >> 12) & 0x3F) as usize] as char);
+        if chunk.len() > 1 { result.push(CHARS[((triple >> 6) & 0x3F) as usize] as char); } else { result.push('='); }
+        if chunk.len() > 2 { result.push(CHARS[(triple & 0x3F) as usize] as char); } else { result.push('='); }
+    }
+    result
+}
+
+fn base64_decode(s: &str) -> Result<String, String> {
+    let s = s.trim();
+    let mut bytes = Vec::new();
+    let chars: Vec<u8> = s.bytes().collect();
+    for chunk in chars.chunks(4) {
+        if chunk.len() < 4 { break; }
+        let vals: Vec<u32> = chunk.iter().map(|&c| {
+            match c {
+                b'A'..=b'Z' => (c - b'A') as u32,
+                b'a'..=b'z' => (c - b'a' + 26) as u32,
+                b'0'..=b'9' => (c - b'0' + 52) as u32,
+                b'+' => 62, b'/' => 63, _ => 0,
+            }
+        }).collect();
+        let triple = (vals[0] << 18) | (vals[1] << 12) | (vals[2] << 6) | vals[3];
+        bytes.push(((triple >> 16) & 0xFF) as u8);
+        if chunk[2] != b'=' { bytes.push(((triple >> 8) & 0xFF) as u8); }
+        if chunk[3] != b'=' { bytes.push((triple & 0xFF) as u8); }
+    }
+    String::from_utf8(bytes).map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 pub async fn run_maintenance(app: AppHandle) -> Result<ScriptResult, String> {
     tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "maintenance.sh", &[]))
