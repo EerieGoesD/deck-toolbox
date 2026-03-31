@@ -346,8 +346,8 @@ pub async fn open_url(url: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn run_maintenance(app: AppHandle) -> Result<ScriptResult, String> {
-    tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "maintenance.sh", &[]))
+pub async fn run_maintenance(app: AppHandle, force_heavy: String) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "maintenance.sh", &[&force_heavy]))
         .await.map_err(|e| e.to_string())?
 }
 

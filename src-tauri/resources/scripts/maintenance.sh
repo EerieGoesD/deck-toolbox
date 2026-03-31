@@ -29,8 +29,14 @@ WARN_DISK_AVAIL_GB="${WARN_DISK_AVAIL_GB:-10}"
 
 REPORT_STEAM_DIRS="${REPORT_STEAM_DIRS:-1}"
 
-REQUIRE_AC_FOR_HEAVY="${REQUIRE_AC_FOR_HEAVY:-1}"
-SKIP_HEAVY_IN_GAMING_MODE="${SKIP_HEAVY_IN_GAMING_MODE:-1}"
+# Accept force-heavy flag from Deck Toolbox GUI (first argument)
+if [[ "${1:-0}" == "1" ]]; then
+  REQUIRE_AC_FOR_HEAVY=0
+  SKIP_HEAVY_IN_GAMING_MODE=0
+else
+  REQUIRE_AC_FOR_HEAVY="${REQUIRE_AC_FOR_HEAVY:-1}"
+  SKIP_HEAVY_IN_GAMING_MODE="${SKIP_HEAVY_IN_GAMING_MODE:-1}"
+fi
 SKIP_HEAVY_IF_OFFLINE="${SKIP_HEAVY_IF_OFFLINE:-1}"
 
 EXIT_NONZERO_ON_FAILS="${EXIT_NONZERO_ON_FAILS:-0}"
@@ -317,7 +323,7 @@ fi
 
 # -------------------- journald vacuum (user) --------------------
 if have journalctl; then
-  run "User journal rotate" "$TMO_JOURNAL" journalctl --user --no-pager --rotate
+  run "User journal rotate" "$TMO_JOURNAL" bash -c "journalctl --user --no-pager --rotate 2>/dev/null || true"
   run "User journal vacuum (size ${USER_JOURNAL_SIZE})" "$TMO_JOURNAL" \
     journalctl --user --no-pager --vacuum-size="$USER_JOURNAL_SIZE"
   run "User journal vacuum (time ${USER_JOURNAL_TIME})" "$TMO_JOURNAL" \
@@ -341,8 +347,16 @@ if [[ $ROOT_OK -eq 1 ]]; then
       sudo -n journalctl --no-pager --vacuum-time="$SYS_JOURNAL_TIME"
   fi
 
-  have coredumpctl && run "Core dump vacuum (keep ${COREDUMP_TIME})" "$TMO_SYSTEM" \
-    sudo -n coredumpctl --no-pager --vacuum-time="$COREDUMP_TIME"
+  if have coredumpctl; then
+    # Older coredumpctl doesn't support --vacuum-time, clean manually
+    if coredumpctl --help 2>&1 | grep -q vacuum; then
+      run "Core dump vacuum (keep ${COREDUMP_TIME})" "$TMO_SYSTEM" \
+        sudo -n coredumpctl --no-pager --vacuum-time="$COREDUMP_TIME"
+    else
+      run "Core dump cleanup (manual, keep ${COREDUMP_TIME})" "$TMO_SYSTEM" \
+        sudo -n bash -c "find /var/lib/systemd/coredump -type f -mtime +${COREDUMP_TIME%d} -delete 2>/dev/null; true"
+    fi
+  fi
 
   if have smartctl && have findmnt && have lsblk; then
     run "SMART health (if supported)" "$TMO_SYSTEM" bash -c '
