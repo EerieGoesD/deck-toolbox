@@ -12,6 +12,7 @@ pub fn run() {
             commands::scripts::load_sudo_password,
             commands::scripts::clear_sudo_password,
             commands::scripts::export_log,
+            commands::scripts::open_url,
             commands::cue::generate_cue,
             commands::scripts::run_maintenance,
             commands::scripts::steam_reset,

@@ -479,15 +479,15 @@ header::after {
     </div>
     <div class="header-right">
       <span>Made by</span>
-      <a href="https://eeriegoesd.com/" target="_blank" rel="noreferrer">EERIE</a>
+      <a href="#" onclick="openLink('https://eeriegoesd.com/')">EERIE</a>
       <span class="sep">|</span>
-      <a href="https://buymeacoffee.com/eeriegoesd" target="_blank" rel="noreferrer">Buy Me a Coffee</a>
+      <a href="#" onclick="openLink('https://buymeacoffee.com/eeriegoesd')">Buy Me a Coffee</a>
       <span class="sep">|</span>
-      <a href="https://github.com/EerieGoesD/deck-toolbox/discussions" target="_blank" rel="noreferrer">Feedback</a>
+      <a href="#" onclick="openLink('https://github.com/EerieGoesD/deck-toolbox/discussions')">Feedback</a>
       <span class="sep">|</span>
-      <a href="https://github.com/EerieGoesD/deck-toolbox/issues" target="_blank" rel="noreferrer">Report Issue</a>
+      <a href="#" onclick="openLink('https://github.com/EerieGoesD/deck-toolbox/issues')">Report Issue</a>
       <span class="sep">|</span>
-      <a href="https://github.com/EerieGoesD/deck-toolbox/issues/new?template=feature_request.md" target="_blank" rel="noreferrer">Suggest a Script</a>
+      <a href="#" onclick="openLink('https://github.com/EerieGoesD/deck-toolbox/issues/new?template=feature_request.md')">Suggest a Script</a>
     </div>
   </div>
   <div class="sudo-bar">
@@ -658,6 +658,19 @@ header::after {
 
 <script>
 const { invoke } = window.__TAURI__.core;
+
+// ─────────────────────────────────────────────
+// External links
+// ─────────────────────────────────────────────
+
+function openLink(url) {
+  if (window.__TAURI__?.shell?.open) {
+    window.__TAURI__.shell.open(url);
+  } else {
+    // Fallback: try xdg-open via invoke
+    invoke('open_url', { url }).catch(() => {});
+  }
+}
 
 // ─────────────────────────────────────────────
 // Sudo

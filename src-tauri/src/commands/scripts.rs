@@ -254,6 +254,19 @@ fn base64_decode(s: &str) -> Result<String, String> {
 }
 
 #[tauri::command]
+pub async fn open_url(url: String) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        #[cfg(target_os = "linux")]
+        { let _ = Command::new("xdg-open").arg(&url).spawn(); }
+        #[cfg(target_os = "windows")]
+        { let _ = Command::new("cmd").args(["/C", "start", &url]).spawn(); }
+        #[cfg(target_os = "macos")]
+        { let _ = Command::new("open").arg(&url).spawn(); }
+    }).await.map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
 pub async fn run_maintenance(app: AppHandle) -> Result<ScriptResult, String> {
     tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "maintenance.sh", &[]))
         .await.map_err(|e| e.to_string())?
