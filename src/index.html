@@ -456,8 +456,8 @@ header::after {
 .confirm-form { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
 
 .confirm-field { display: flex; align-items: center; gap: 10px; }
-.confirm-field label { font-family: var(--mono); font-size: 12px; color: var(--muted); min-width: 70px; }
-.confirm-field select, .confirm-field input[type="number"] {
+.confirm-field label { font-family: var(--mono); font-size: 12px; color: var(--muted); min-width: 110px; }
+.confirm-field select, .confirm-field input[type="number"], .confirm-field input[type="password"] {
   padding: 6px 10px;
   background: var(--surface2);
   border: 1px solid var(--border);
@@ -466,9 +466,10 @@ header::after {
   font-family: var(--mono);
   font-size: 12px;
   outline: none;
+  flex: 1;
 }
 .confirm-field select:focus, .confirm-field input:focus { border-color: var(--accent); }
-.confirm-field input[type="number"] { width: 80px; }
+.confirm-field input[type="number"] { flex: none; width: 80px; }
 
 .path-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
 .path-item {
@@ -722,48 +723,71 @@ const { invoke } = window.__TAURI__.core;
 // Sudo setup (for users with no password)
 // ─────────────────────────────────────────────
 
-function showSudoSetup() {
+async function showSudoSetup() {
   document.getElementById('confirmTitle').textContent = 'Set Up Sudo Password';
   const sub = document.getElementById('confirmSubtitle');
-  sub.textContent = 'First-time setup';
-  sub.className = 'confirm-subtitle safe';
-  document.getElementById('confirmBody').innerHTML = `
-    The Steam Deck has no password by default. You need to set one to use scripts that require system access.<br><br>
-    <div class="confirm-form">
-      <div class="confirm-field"><label>New password:</label><input type="password" id="setupPw1" style="flex:1;" /></div>
-      <div class="confirm-field"><label>Repeat:</label><input type="password" id="setupPw2" style="flex:1;" onkeydown="if(event.key==='Enter')document.getElementById('confirmYes').click()" /></div>
-      <div id="setupError" style="font-family:var(--mono);font-size:12px;color:var(--danger);display:none;"></div>
-    </div>`;
+  sub.textContent = 'Checking...';
+  sub.className = 'confirm-subtitle none';
+  document.getElementById('confirmBody').innerHTML = 'Detecting password status...';
   const yesBtn = document.getElementById('confirmYes');
-  yesBtn.textContent = 'Set Password';
-  yesBtn.className = 'tool-btn primary';
-  yesBtn.onclick = async () => {
-    const pw1 = document.getElementById('setupPw1').value;
-    const pw2 = document.getElementById('setupPw2').value;
-    const errEl = document.getElementById('setupError');
-    if (!pw1) { errEl.textContent = 'Password cannot be empty.'; errEl.style.display = ''; return; }
-    if (pw1 !== pw2) { errEl.textContent = 'Passwords do not match.'; errEl.style.display = ''; return; }
-    if (pw1.length < 4) { errEl.textContent = 'Password must be at least 4 characters.'; errEl.style.display = ''; return; }
-    errEl.textContent = 'Setting password...';
-    errEl.style.display = '';
-    errEl.style.color = 'var(--muted)';
-    try {
-      const result = await invoke('set_user_password', { newPassword: pw1 });
-      if (result.code === 0) {
-        errEl.textContent = 'Password set! You can now use it to authenticate.';
-        errEl.style.color = 'var(--success)';
-        setTimeout(() => closeConfirm(), 2000);
-      } else {
-        errEl.textContent = 'Failed: ' + (result.stderr || 'Unknown error. Try setting it manually in Konsole with: passwd');
+  yesBtn.style.display = 'none';
+  document.getElementById('confirmOverlay').classList.add('open');
+
+  let hasPassword = false;
+  try { hasPassword = await invoke('check_has_password'); } catch (e) {}
+
+  if (hasPassword) {
+    sub.textContent = 'Password detected';
+    sub.className = 'confirm-subtitle safe';
+    document.getElementById('confirmBody').innerHTML = `
+      Your Steam Deck already has a sudo password configured.<br><br>
+      Enter it in the password field above and click <strong>Unlock</strong> to authenticate.<br><br>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--muted);">If you forgot your password, open Konsole and run: <code>passwd</code></span>`;
+    yesBtn.textContent = 'OK';
+    yesBtn.className = 'tool-btn primary';
+    yesBtn.style.display = '';
+    yesBtn.onclick = () => closeConfirm();
+  } else {
+    sub.textContent = 'First-time setup';
+    sub.className = 'confirm-subtitle caution';
+    document.getElementById('confirmBody').innerHTML = `
+      No password is set on this Steam Deck. You need one to run scripts that require system access.<br><br>
+      <div class="confirm-form">
+        <div class="confirm-field"><label>New password:</label><input type="password" id="setupPw1" /></div>
+        <div class="confirm-field"><label>Repeat password:</label><input type="password" id="setupPw2" onkeydown="if(event.key==='Enter')document.getElementById('confirmYes').click()" /></div>
+        <div id="setupError" style="font-family:var(--mono);font-size:12px;color:var(--danger);display:none;"></div>
+      </div>`;
+    yesBtn.textContent = 'Set Password';
+    yesBtn.className = 'tool-btn primary';
+    yesBtn.style.display = '';
+    yesBtn.onclick = async () => {
+      const pw1 = document.getElementById('setupPw1').value;
+      const pw2 = document.getElementById('setupPw2').value;
+      const errEl = document.getElementById('setupError');
+      errEl.style.color = 'var(--danger)';
+      if (!pw1) { errEl.textContent = 'Password cannot be empty.'; errEl.style.display = ''; return; }
+      if (pw1 !== pw2) { errEl.textContent = 'Passwords do not match.'; errEl.style.display = ''; return; }
+      if (pw1.length < 4) { errEl.textContent = 'Password must be at least 4 characters.'; errEl.style.display = ''; return; }
+      errEl.textContent = 'Setting password...';
+      errEl.style.display = '';
+      errEl.style.color = 'var(--muted)';
+      try {
+        const result = await invoke('set_user_password', { newPassword: pw1 });
+        if (result.code === 0) {
+          errEl.textContent = 'Password set! You can now use it to authenticate.';
+          errEl.style.color = 'var(--success)';
+          setTimeout(() => closeConfirm(), 2000);
+        } else {
+          errEl.textContent = 'Failed. Open Konsole and run: passwd';
+          errEl.style.color = 'var(--danger)';
+        }
+      } catch (err) {
+        errEl.textContent = 'Error. Open Konsole and run: passwd';
         errEl.style.color = 'var(--danger)';
       }
-    } catch (err) {
-      errEl.textContent = 'Error. Open Konsole and run: passwd';
-      errEl.style.color = 'var(--danger)';
-    }
-  };
-  document.getElementById('confirmOverlay').classList.add('open');
-  setTimeout(() => document.getElementById('setupPw1')?.focus(), 100);
+    };
+    setTimeout(() => document.getElementById('setupPw1')?.focus(), 100);
+  }
 }
 
 // ─────────────────────────────────────────────

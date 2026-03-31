@@ -254,6 +254,33 @@ fn base64_decode(s: &str) -> Result<String, String> {
 }
 
 #[tauri::command]
+pub async fn check_has_password() -> Result<bool, String> {
+    // Try sudo -n true - if it works, password is cached or NOPASSWD.
+    // Try sudo -S true with empty password - if it works, no password is set.
+    let result = tauri::async_runtime::spawn_blocking(|| {
+        let mut child = Command::new("sudo")
+            .args(["-S", "true"])
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .ok()?;
+        if let Some(mut stdin) = child.stdin.take() {
+            // Send empty password
+            let _ = writeln!(stdin, "");
+        }
+        let output = child.wait_with_output().ok()?;
+        // If empty password works, user has NO password set
+        // If it fails, user HAS a password set
+        Some(!output.status.success())
+    })
+    .await
+    .map_err(|e| e.to_string())?;
+
+    Ok(result.unwrap_or(true))
+}
+
+#[tauri::command]
 pub async fn set_user_password(new_password: String) -> Result<ScriptResult, String> {
     tauri::async_runtime::spawn_blocking(move || {
         // On SteamOS, deck user has no password by default.
