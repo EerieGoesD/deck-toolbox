@@ -81,7 +81,7 @@ header::after {
 
 .header-right {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 13px;
   color: var(--muted);
   display: flex;
   align-items: center;
@@ -147,7 +147,7 @@ header::after {
 }
 .sudo-bar .sudo-btn:hover { background: var(--accent2); }
 
-.sudo-status { font-family: var(--mono); font-size: 12px; font-weight: 600; }
+.sudo-status { font-family: var(--mono); font-size: 12px; font-weight: 600; min-width: 120px; }
 .sudo-status.ok { color: var(--success); }
 .sudo-status.fail { color: var(--danger); }
 .sudo-status.none { color: var(--muted); }
@@ -802,6 +802,10 @@ async function cacheSudo() {
         await invoke('save_sudo_password', { password });
       }
       input.value = '';
+      input.disabled = true;
+      input.placeholder = 'Authenticated';
+      document.querySelector('.sudo-btn').disabled = true;
+      document.querySelector('.sudo-btn').style.opacity = '0.4';
     } else {
       status.className = 'sudo-status fail';
       status.textContent = 'Wrong password';
@@ -821,6 +825,11 @@ async function cacheSudo() {
       document.getElementById('sudoStatus').textContent = 'Authenticated';
       document.getElementById('sudoSave').checked = true;
       sudoAuthenticated = true;
+      const inp = document.getElementById('sudoPassword');
+      inp.disabled = true;
+      inp.placeholder = 'Authenticated';
+      document.querySelector('.sudo-btn').disabled = true;
+      document.querySelector('.sudo-btn').style.opacity = '0.4';
     }
   } catch (e) {}
 })();
