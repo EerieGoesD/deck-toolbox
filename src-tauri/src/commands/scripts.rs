@@ -254,6 +254,58 @@ fn base64_decode(s: &str) -> Result<String, String> {
 }
 
 #[tauri::command]
+pub async fn set_user_password(new_password: String) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        // On SteamOS, deck user has no password by default.
+        // Use chpasswd which reads "user:password" from stdin
+        let mut child = Command::new("sudo")
+            .args(["-S", "chpasswd"])
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .map_err(|e| e.to_string())?;
+
+        if let Some(mut stdin) = child.stdin.take() {
+            // First line: empty password for sudo (deck has no password by default)
+            let _ = writeln!(stdin, "");
+            // chpasswd expects "username:newpassword"
+            let _ = writeln!(stdin, "deck:{}", new_password);
+        }
+
+        let output = child.wait_with_output().map_err(|e| e.to_string())?;
+
+        // If that didn't work (sudo needs password), try with passwd --stdin
+        if !output.status.success() {
+            let mut child2 = Command::new("passwd")
+                .args(["--stdin", "deck"])
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped())
+                .spawn()
+                .map_err(|e| e.to_string())?;
+
+            if let Some(mut stdin) = child2.stdin.take() {
+                let _ = writeln!(stdin, "{}", new_password);
+            }
+
+            let output2 = child2.wait_with_output().map_err(|e| e.to_string())?;
+            return Ok(ScriptResult {
+                code: output2.status.code().unwrap_or(-1),
+                stdout: String::from_utf8_lossy(&output2.stdout).into_owned(),
+                stderr: String::from_utf8_lossy(&output2.stderr).into_owned(),
+            });
+        }
+
+        Ok(ScriptResult {
+            code: output.status.code().unwrap_or(-1),
+            stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
+            stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
+        })
+    }).await.map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
 pub async fn open_url(url: String) -> Result<(), String> {
     tauri::async_runtime::spawn_blocking(move || {
         #[cfg(target_os = "linux")]

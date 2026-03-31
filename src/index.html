@@ -97,19 +97,31 @@ header::after {
   z-index: 1;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0;
   margin-top: 12px;
-  padding: 8px 14px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 6px;
+  overflow: hidden;
+}
+
+.sudo-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+}
+
+.sudo-divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--border);
 }
 
 .sudo-bar label { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
 
-.sudo-bar input {
-  flex: 1;
-  max-width: 220px;
+.sudo-bar input[type="password"] {
+  width: 180px;
   padding: 6px 10px;
   background: var(--surface2);
   border: 1px solid var(--border);
@@ -119,7 +131,7 @@ header::after {
   font-size: 12px;
   outline: none;
 }
-.sudo-bar input:focus { border-color: var(--accent); }
+.sudo-bar input[type="password"]:focus { border-color: var(--accent); }
 
 .sudo-bar .sudo-btn {
   font-family: var(--sans);
@@ -135,9 +147,44 @@ header::after {
 }
 .sudo-bar .sudo-btn:hover { background: var(--accent2); }
 
-.sudo-status { font-family: var(--mono); font-size: 11px; font-weight: 600; }
+.sudo-status { font-family: var(--mono); font-size: 12px; font-weight: 600; }
 .sudo-status.ok { color: var(--success); }
 .sudo-status.fail { color: var(--danger); }
+.sudo-status.none { color: var(--muted); }
+
+.sudo-setup-link {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  background: none;
+  border: none;
+}
+.sudo-setup-link:hover { color: var(--accent2); }
+
+/* ── Inline sudo in confirm dialog ── */
+.confirm-sudo-field {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.confirm-sudo-field label { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+.confirm-sudo-field input {
+  flex: 1;
+  padding: 8px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  outline: none;
+}
+.confirm-sudo-field input:focus { border-color: var(--accent); }
 .sudo-status.none { color: var(--muted); }
 
 /* ── Tabs ── */
@@ -491,11 +538,23 @@ header::after {
     </div>
   </div>
   <div class="sudo-bar">
-    <span class="sudo-status none" id="sudoStatus">Not authenticated</span>
-    <label>sudo password:</label>
-    <input type="password" id="sudoPassword" placeholder="Enter password" onkeydown="if(event.key==='Enter')cacheSudo()" />
-    <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="sudoSave" style="cursor:pointer;" /> <span style="font-family:var(--mono);font-size:11px;color:var(--muted);">Remember</span></label>
-    <button class="sudo-btn" onclick="cacheSudo()">Unlock</button>
+    <div class="sudo-section">
+      <span class="sudo-status none" id="sudoStatus">Not authenticated</span>
+    </div>
+    <div class="sudo-divider"></div>
+    <div class="sudo-section">
+      <label>Password:</label>
+      <input type="password" id="sudoPassword" placeholder="Enter sudo password" onkeydown="if(event.key==='Enter')cacheSudo()" />
+      <button class="sudo-btn" onclick="cacheSudo()">Unlock</button>
+    </div>
+    <div class="sudo-divider"></div>
+    <div class="sudo-section">
+      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="sudoSave" style="cursor:pointer;" /> Remember</label>
+    </div>
+    <div class="sudo-divider"></div>
+    <div class="sudo-section">
+      <button class="sudo-setup-link" onclick="showSudoSetup()">No password? Set one up</button>
+    </div>
   </div>
   <nav class="tabs" style="margin-top: 10px;">
     <button class="tab active" onclick="switchTab('utilities')">Utilities</button>
@@ -658,6 +717,54 @@ header::after {
 
 <script>
 const { invoke } = window.__TAURI__.core;
+
+// ─────────────────────────────────────────────
+// Sudo setup (for users with no password)
+// ─────────────────────────────────────────────
+
+function showSudoSetup() {
+  document.getElementById('confirmTitle').textContent = 'Set Up Sudo Password';
+  const sub = document.getElementById('confirmSubtitle');
+  sub.textContent = 'First-time setup';
+  sub.className = 'confirm-subtitle safe';
+  document.getElementById('confirmBody').innerHTML = `
+    The Steam Deck has no password by default. You need to set one to use scripts that require system access.<br><br>
+    <div class="confirm-form">
+      <div class="confirm-field"><label>New password:</label><input type="password" id="setupPw1" style="flex:1;" /></div>
+      <div class="confirm-field"><label>Repeat:</label><input type="password" id="setupPw2" style="flex:1;" onkeydown="if(event.key==='Enter')document.getElementById('confirmYes').click()" /></div>
+      <div id="setupError" style="font-family:var(--mono);font-size:12px;color:var(--danger);display:none;"></div>
+    </div>`;
+  const yesBtn = document.getElementById('confirmYes');
+  yesBtn.textContent = 'Set Password';
+  yesBtn.className = 'tool-btn primary';
+  yesBtn.onclick = async () => {
+    const pw1 = document.getElementById('setupPw1').value;
+    const pw2 = document.getElementById('setupPw2').value;
+    const errEl = document.getElementById('setupError');
+    if (!pw1) { errEl.textContent = 'Password cannot be empty.'; errEl.style.display = ''; return; }
+    if (pw1 !== pw2) { errEl.textContent = 'Passwords do not match.'; errEl.style.display = ''; return; }
+    if (pw1.length < 4) { errEl.textContent = 'Password must be at least 4 characters.'; errEl.style.display = ''; return; }
+    errEl.textContent = 'Setting password...';
+    errEl.style.display = '';
+    errEl.style.color = 'var(--muted)';
+    try {
+      const result = await invoke('set_user_password', { newPassword: pw1 });
+      if (result.code === 0) {
+        errEl.textContent = 'Password set! You can now use it to authenticate.';
+        errEl.style.color = 'var(--success)';
+        setTimeout(() => closeConfirm(), 2000);
+      } else {
+        errEl.textContent = 'Failed: ' + (result.stderr || 'Unknown error. Try setting it manually in Konsole with: passwd');
+        errEl.style.color = 'var(--danger)';
+      }
+    } catch (err) {
+      errEl.textContent = 'Error. Open Konsole and run: passwd';
+      errEl.style.color = 'var(--danger)';
+    }
+  };
+  document.getElementById('confirmOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('setupPw1')?.focus(), 100);
+}
 
 // ─────────────────────────────────────────────
 // External links
@@ -898,33 +1005,59 @@ let sudoAuthenticated = false;
 
 function confirmAction(key) {
   const data = CONFIRM_DATA[key];
-
-  // Block if sudo is required but not authenticated
-  if (data.requiresSudo && !sudoAuthenticated) {
-    document.getElementById('confirmTitle').textContent = 'Sudo Required';
-    const sub = document.getElementById('confirmSubtitle');
-    sub.textContent = 'Authentication needed';
-    sub.className = 'confirm-subtitle caution';
-    document.getElementById('confirmBody').innerHTML = `<strong>${data.title}</strong> requires sudo privileges.<br><br>Please enter your sudo password at the top of the app and click <strong>Unlock</strong> before running this script.`;
-    const yesBtn = document.getElementById('confirmYes');
-    yesBtn.textContent = 'OK';
-    yesBtn.className = 'tool-btn primary';
-    yesBtn.onclick = () => closeConfirm();
-    document.getElementById('confirmOverlay').classList.add('open');
-    return;
-  }
+  const needsSudoInput = data.requiresSudo && !sudoAuthenticated;
 
   document.getElementById('confirmTitle').textContent = data.title;
-  document.getElementById('confirmBody').innerHTML = data.body;
   const sub = document.getElementById('confirmSubtitle');
   sub.textContent = data.label;
   sub.className = 'confirm-subtitle ' + data.severity;
+
+  // Build body with optional inline sudo field
+  let bodyHtml = data.body;
+  if (needsSudoInput) {
+    bodyHtml += `<div class="confirm-sudo-field"><label>Sudo password:</label><input type="password" id="confirmSudoInput" placeholder="Required for this script" onkeydown="if(event.key==='Enter')document.getElementById('confirmYes').click()" /></div>`;
+  }
+  document.getElementById('confirmBody').innerHTML = bodyHtml;
+
   const yesBtn = document.getElementById('confirmYes');
   yesBtn.textContent = data.severity === 'safe' ? 'Run' : 'Confirm';
   yesBtn.className = 'tool-btn ' + (data.severity === 'destructive' ? 'danger' : data.severity === 'caution' ? 'warn' : 'primary');
-  yesBtn.onclick = () => { closeConfirm(); data.action(); };
+
+  yesBtn.onclick = async () => {
+    if (needsSudoInput) {
+      const pw = document.getElementById('confirmSudoInput')?.value;
+      if (!pw) {
+        document.getElementById('confirmSudoInput').style.borderColor = 'var(--danger)';
+        return;
+      }
+      // Validate and cache sudo
+      try {
+        const result = await invoke('cache_sudo', { password: pw });
+        if (result.code !== 0) {
+          document.getElementById('confirmSudoInput').value = '';
+          document.getElementById('confirmSudoInput').style.borderColor = 'var(--danger)';
+          document.getElementById('confirmSudoInput').placeholder = 'Wrong password - try again';
+          return;
+        }
+        sudoAuthenticated = true;
+        document.getElementById('sudoStatus').className = 'sudo-status ok';
+        document.getElementById('sudoStatus').textContent = 'Authenticated';
+        if (document.getElementById('sudoSave').checked) {
+          await invoke('save_sudo_password', { password: pw });
+        }
+      } catch (err) {
+        return;
+      }
+    }
+    closeConfirm();
+    data.action();
+  };
+
   document.getElementById('confirmOverlay').classList.add('open');
   if (data.onOpen) data.onOpen();
+  if (needsSudoInput) {
+    setTimeout(() => document.getElementById('confirmSudoInput')?.focus(), 100);
+  }
 }
 
 function closeConfirm() {
