@@ -30,15 +30,32 @@ jobs:
       - name: Install Tauri CLI
         run: cargo install tauri-cli --version "^2"
 
-      - name: Build binary
-        run: cargo tauri build --no-bundle
+      - name: Build AppImage
+        run: cargo tauri build --bundles appimage
 
-      - name: Build pacman package
+      - name: Patch AppImage to fix Steam Deck EGL crash
         run: |
-          # makepkg can't run as root, create a build user
-          useradd -m builder
-          chown -R builder:builder .
-          su builder -c "makepkg --nodeps --noextract"
+          APPIMAGE=$(find src-tauri/target/release/bundle/appimage -name '*.AppImage' | head -1)
+          chmod +x "$APPIMAGE"
+          # Extract, patch AppRun to set EGL workaround, repack
+          "$APPIMAGE" --appimage-extract
+          # Prepend environment fix to AppRun
+          sed -i '2i export WEBKIT_DISABLE_DMABUF_RENDERER=1\nexport GDK_BACKEND=x11' squashfs-root/AppRun
+          # Remove bundled Mesa/EGL that conflicts with Steam Deck GPU drivers
+          rm -f squashfs-root/usr/lib/x86_64-linux-gnu/libEGL* 2>/dev/null || true
+          rm -f squashfs-root/usr/lib/x86_64-linux-gnu/libGLES* 2>/dev/null || true
+          rm -f squashfs-root/usr/lib/x86_64-linux-gnu/libgbm* 2>/dev/null || true
+          rm -rf squashfs-root/usr/lib/x86_64-linux-gnu/dri 2>/dev/null || true
+          # Repack
+          pacman -S --noconfirm appimagetool || true
+          if command -v appimagetool &>/dev/null; then
+            ARCH=x86_64 appimagetool squashfs-root "$APPIMAGE"
+          else
+            curl -sL https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage -o appimagetool
+            chmod +x appimagetool
+            ARCH=x86_64 ./appimagetool --appimage-extract-and-run squashfs-root "$APPIMAGE"
+          fi
+          rm -rf squashfs-root
 
       - name: Get version from tag
         id: version
@@ -52,4 +69,4 @@ jobs:
           prerelease: false
           generate_release_notes: true
           files: |
-            *.pkg.tar.zst
+            src-tauri/target/release/bundle/appimage/*.AppImage
