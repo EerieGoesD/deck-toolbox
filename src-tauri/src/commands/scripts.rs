@@ -333,6 +333,34 @@ pub async fn set_user_password(new_password: String) -> Result<ScriptResult, Str
 }
 
 #[tauri::command]
+pub async fn delete_files(files: Vec<String>) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let mut deleted = Vec::new();
+        let mut errors = Vec::new();
+        for f in &files {
+            match std::fs::remove_file(f) {
+                Ok(_) => deleted.push(format!("Deleted: {}", f)),
+                Err(e) => errors.push(format!("Failed: {} - {}", f, e)),
+            }
+        }
+        let stdout = if deleted.is_empty() && errors.is_empty() {
+            "No files selected.\n".into()
+        } else {
+            let mut out = String::new();
+            for d in &deleted { out.push_str(&format!("{}\n", d)); }
+            for e in &errors { out.push_str(&format!("{}\n", e)); }
+            out.push_str(&format!("\n{} deleted, {} failed.\n", deleted.len(), errors.len()));
+            out
+        };
+        Ok(ScriptResult {
+            code: if errors.is_empty() { 0 } else { 1 },
+            stdout,
+            stderr: String::new(),
+        })
+    }).await.map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
 pub async fn open_url(url: String) -> Result<(), String> {
     tauri::async_runtime::spawn_blocking(move || {
         #[cfg(target_os = "linux")]

@@ -13,6 +13,7 @@ pub fn run() {
             commands::scripts::clear_sudo_password,
             commands::scripts::export_log,
             commands::scripts::check_has_password,
+            commands::scripts::delete_files,
             commands::scripts::set_user_password,
             commands::scripts::open_url,
             commands::cue::generate_cue,
