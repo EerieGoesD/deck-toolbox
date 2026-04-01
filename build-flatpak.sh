@@ -28,13 +28,13 @@ echo ""
 
 # Step 2: Install SDK
 echo "[2/5] Ensuring Flatpak SDK is available..."
-flatpak install --user --noninteractive flathub org.gnome.Platform//46 org.gnome.Sdk//46 org.freedesktop.Sdk.Extension.rust-stable//24.08 2>/dev/null || true
+flatpak install --user --noninteractive flathub org.gnome.Platform//49 org.gnome.Sdk//49 org.freedesktop.Sdk.Extension.rust-stable//24.08 2>/dev/null || true
 echo ""
 
 # Step 3: Generate cargo-sources.json
 echo "[3/5] Generating cargo dependency sources..."
 if [[ ! -f "$FLATPAK_DIR/flatpak-cargo-generator.py" ]]; then
-  curl -sL "https://raw.githubusercontent.com/nickkadutskyi/flatpak-builder-tools/refs/heads/v2/cargo/flatpak-cargo-generator.py" \
+  curl -sL "https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/master/cargo/flatpak-cargo-generator.py" \
     -o "$FLATPAK_DIR/flatpak-cargo-generator.py"
 fi
 python3 "$FLATPAK_DIR/flatpak-cargo-generator.py" \
