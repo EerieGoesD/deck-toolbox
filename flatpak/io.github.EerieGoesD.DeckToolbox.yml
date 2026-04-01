@@ -2,6 +2,8 @@ id: io.github.EerieGoesD.DeckToolbox
 runtime: org.gnome.Platform
 runtime-version: "46"
 sdk: org.gnome.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
 command: deck-toolbox
 finish-args:
   - --socket=wayland
@@ -16,31 +18,20 @@ finish-args:
 modules:
   - name: deck-toolbox
     buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/rust-stable/bin
+      env:
+        CARGO_HOME: /run/build/deck-toolbox/cargo
+    sources:
+      - type: dir
+        path: ..
+      - cargo-sources.json
     build-commands:
-      - install -Dm755 deck-toolbox /app/bin/deck-toolbox
-      - install -Dm755 deck-toolbox.bin /app/bin/deck-toolbox.bin
+      - cargo --offline fetch --manifest-path src-tauri/Cargo.toml
+      - cargo --offline build --release --manifest-path src-tauri/Cargo.toml
+      - install -Dm755 src-tauri/target/release/deck-toolbox /app/bin/deck-toolbox
       - install -Dm644 io.github.EerieGoesD.DeckToolbox.desktop /app/share/applications/io.github.EerieGoesD.DeckToolbox.desktop
-      - install -Dm644 io.github.EerieGoesD.DeckToolbox.png /app/share/icons/hicolor/256x256/apps/io.github.EerieGoesD.DeckToolbox.png
+      - install -Dm644 icons/io.github.EerieGoesD.DeckToolbox.png /app/share/icons/hicolor/256x256/apps/io.github.EerieGoesD.DeckToolbox.png
       - install -Dm644 io.github.EerieGoesD.DeckToolbox.metainfo.xml /app/share/metainfo/io.github.EerieGoesD.DeckToolbox.metainfo.xml
       - mkdir -p /app/share/deck-toolbox/scripts
-      - install -m755 scripts/*.sh /app/share/deck-toolbox/scripts/
-      - mkdir -p /app/lib
-      - if ls libs/*.so* 1>/dev/null 2>&1; then cp -a libs/*.so* /app/lib/; fi
-      - if [ -d libs/webkit2gtk-4.1 ]; then cp -a libs/webkit2gtk-4.1 /app/lib/; fi
-    sources:
-      - type: file
-        path: deck-toolbox
-      - type: file
-        path: deck-toolbox.bin
-      - type: file
-        path: io.github.EerieGoesD.DeckToolbox.desktop
-      - type: file
-        path: io.github.EerieGoesD.DeckToolbox.png
-      - type: file
-        path: io.github.EerieGoesD.DeckToolbox.metainfo.xml
-      - type: dir
-        path: scripts
-        dest: scripts
-      - type: dir
-        path: libs
-        dest: libs
+      - install -m755 src-tauri/resources/scripts/*.sh /app/share/deck-toolbox/scripts/
