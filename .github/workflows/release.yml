@@ -38,9 +38,7 @@ jobs:
         run: cargo install tauri-cli --version "^2"
 
       - name: Build
-        run: cargo tauri build --bundles appimage
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ""
+        run: cargo tauri build --bundles appimage,deb
 
       - name: Get version from tag
         id: version
@@ -55,3 +53,4 @@ jobs:
           generate_release_notes: true
           files: |
             src-tauri/target/release/bundle/appimage/*.AppImage
+            src-tauri/target/release/bundle/deb/*.deb

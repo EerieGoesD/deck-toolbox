@@ -1,3 +1,12 @@
+/* ── Fonts (bundled locally) ── */
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400; font-style: normal; src: url('../fonts/JetBrainsMono-Regular.ttf') format('truetype'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 600; font-style: normal; src: url('../fonts/JetBrainsMono-SemiBold.ttf') format('truetype'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 700; font-style: normal; src: url('../fonts/JetBrainsMono-Bold.ttf') format('truetype'); }
+@font-face { font-family: 'Syne'; font-weight: 400; font-style: normal; src: url('../fonts/Syne-Regular.ttf') format('truetype'); }
+@font-face { font-family: 'Syne'; font-weight: 600; font-style: normal; src: url('../fonts/Syne-SemiBold.ttf') format('truetype'); }
+@font-face { font-family: 'Syne'; font-weight: 700; font-style: normal; src: url('../fonts/Syne-Bold.ttf') format('truetype'); }
+@font-face { font-family: 'Syne'; font-weight: 800; font-style: normal; src: url('../fonts/Syne-ExtraBold.ttf') format('truetype'); }
+
 :root {
   --bg: #0c0c14;
   --surface: #151520;
