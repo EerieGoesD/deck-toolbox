@@ -11,21 +11,29 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-22.04
-    container:
-      image: archlinux:latest
 
     steps:
-      - name: Install system dependencies
-        run: |
-          pacman -Syu --noconfirm
-          pacman -S --noconfirm --needed \
-            base-devel git rust cargo \
-            webkit2gtk-4.1 gtk3 \
-            pkgconf patchelf \
-            libayatana-appindicator
-
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libfuse2
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
 
       - name: Install Tauri CLI
         run: cargo install tauri-cli --version "^2"
@@ -33,29 +41,28 @@ jobs:
       - name: Build AppImage
         run: cargo tauri build --bundles appimage
 
-      - name: Patch AppImage to fix Steam Deck EGL crash
+      - name: Patch AppImage for Steam Deck
         run: |
           APPIMAGE=$(find src-tauri/target/release/bundle/appimage -name '*.AppImage' | head -1)
           chmod +x "$APPIMAGE"
-          # Extract, patch AppRun to set EGL workaround, repack
+
+          # Extract
           "$APPIMAGE" --appimage-extract
-          # Prepend environment fix to AppRun
+
+          # Patch AppRun to fix EGL crash on Steam Deck
           sed -i '2i export WEBKIT_DISABLE_DMABUF_RENDERER=1\nexport GDK_BACKEND=x11' squashfs-root/AppRun
-          # Remove bundled Mesa/EGL that conflicts with Steam Deck GPU drivers
-          rm -f squashfs-root/usr/lib/x86_64-linux-gnu/libEGL* 2>/dev/null || true
-          rm -f squashfs-root/usr/lib/x86_64-linux-gnu/libGLES* 2>/dev/null || true
-          rm -f squashfs-root/usr/lib/x86_64-linux-gnu/libgbm* 2>/dev/null || true
+
+          # Remove bundled Mesa/EGL libs that conflict with Steam Deck AMD drivers
+          find squashfs-root -name 'libEGL*' -delete 2>/dev/null || true
+          find squashfs-root -name 'libGLES*' -delete 2>/dev/null || true
+          find squashfs-root -name 'libgbm*' -delete 2>/dev/null || true
           rm -rf squashfs-root/usr/lib/x86_64-linux-gnu/dri 2>/dev/null || true
-          # Repack
-          pacman -S --noconfirm appimagetool || true
-          if command -v appimagetool &>/dev/null; then
-            ARCH=x86_64 appimagetool squashfs-root "$APPIMAGE"
-          else
-            curl -sL https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage -o appimagetool
-            chmod +x appimagetool
-            ARCH=x86_64 ./appimagetool --appimage-extract-and-run squashfs-root "$APPIMAGE"
-          fi
-          rm -rf squashfs-root
+
+          # Download appimagetool and repack
+          curl -sL https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage -o appimagetool
+          chmod +x appimagetool
+          ARCH=x86_64 ./appimagetool --appimage-extract-and-run squashfs-root "$APPIMAGE"
+          rm -rf squashfs-root appimagetool
 
       - name: Get version from tag
         id: version
