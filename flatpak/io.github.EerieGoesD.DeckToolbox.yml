@@ -1,6 +1,6 @@
 id: io.github.EerieGoesD.DeckToolbox
 runtime: org.gnome.Platform
-runtime-version: "47"
+runtime-version: "46"
 sdk: org.gnome.Sdk
 command: deck-toolbox
 finish-args:
