@@ -384,9 +384,11 @@ pub async fn find_decky_leftovers(app: AppHandle) -> Result<ScriptResult, String
 }
 
 #[tauri::command]
-pub async fn find_lost_roms(app: AppHandle) -> Result<ScriptResult, String> {
-    tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "find_lost_roms.sh", &[]))
-        .await.map_err(|e| e.to_string())?
+pub async fn find_lost_roms(app: AppHandle, paths: Vec<String>) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let path_refs: Vec<&str> = paths.iter().map(|s| s.as_str()).collect();
+        run_script_internal(&app, "find_lost_roms.sh", &path_refs)
+    }).await.map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
@@ -408,9 +410,11 @@ pub async fn remove_roms_metadata(app: AppHandle) -> Result<ScriptResult, String
 }
 
 #[tauri::command]
-pub async fn rom_size_sorter(app: AppHandle) -> Result<ScriptResult, String> {
-    tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "rom_size_sorter.sh", &[]))
-        .await.map_err(|e| e.to_string())?
+pub async fn rom_size_sorter(app: AppHandle, paths: Vec<String>) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let path_refs: Vec<&str> = paths.iter().map(|s| s.as_str()).collect();
+        run_script_internal(&app, "rom_size_sorter.sh", &path_refs)
+    }).await.map_err(|e| e.to_string())?
 }
 
 #[tauri::command]

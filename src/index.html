@@ -453,7 +453,7 @@ header::after {
 .confirm-actions .tool-btn { font-size: 15px; padding: 12px 26px; }
 
 /* ── Confirm Form Controls ── */
-.confirm-form { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+.confirm-form { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
 
 .confirm-field { display: flex; align-items: center; gap: 10px; }
 .confirm-field label { font-family: var(--mono); font-size: 13px; color: var(--muted); min-width: 120px; }
@@ -464,12 +464,23 @@ header::after {
   border-radius: 4px;
   color: var(--text);
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 13px;
   outline: none;
-  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
 }
+.confirm-field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23b0b0cc'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+  cursor: pointer;
+  min-width: 160px;
+}
+.confirm-field select option { background: var(--surface2); color: var(--text); }
 .confirm-field select:focus, .confirm-field input:focus { border-color: var(--accent); }
-.confirm-field input[type="number"] { flex: none; width: 80px; }
+.confirm-field input[type="number"] { width: 80px; -moz-appearance: textfield; }
+.confirm-field input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
 
 .path-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
 .path-item {
@@ -978,15 +989,25 @@ const CONFIRM_DATA = {
     title: 'Find Lost ROMs',
     severity: 'safe',
     label: 'Read-only scan',
-    body: `This will:<br><br>&#8226; Search <code>/home/deck</code> and <code>/run/media/deck</code> for ROM file extensions (.iso, .chd, .nsp, .gba, etc.)<br>&#8226; Exclude your standard EmuDeck roms directories from results<br>&#8226; Skip Steam, flatpak, cache, and other system folders<br><br><strong>Nothing is deleted</strong> - this only reports misplaced or forgotten ROMs.`,
-    action: () => runFindLostRoms()
+    body: `Searches for ROM files outside of your known ROM directories. Any ROMs found elsewhere are reported as potentially lost.<br><br><strong>Nothing is deleted</strong> - this only reports what it finds.<br><div class="confirm-form"><label style="min-width:0;color:var(--text);font-size:13px;">Known ROM paths (excluded from results):</label><div class="path-list" id="lostRomPaths"></div><button class="path-add" onclick="addLostRomPath()">+ Add path</button></div>`,
+    action: () => runFindLostRoms(),
+    onOpen: () => {
+      const list = document.getElementById('lostRomPaths');
+      list.innerHTML = '';
+      ['/run/media/deck/EmuDeck/Emulation/roms', '/home/deck/Emulation/roms'].forEach(p => addLostRomPathValue(p));
+    }
   },
   romSort: {
     title: 'ROM Size Sorter',
     severity: 'safe',
     label: 'Read-only scan',
-    body: `This will:<br><br>&#8226; Scan all ROM directories<br>&#8226; List every ROM file sorted by size (largest first)<br>&#8226; Shows file sizes to help identify space hogs<br><br><strong>Nothing is deleted</strong> - this only reports what it finds.`,
-    action: () => runRomSizeSorter()
+    body: `Lists every ROM file sorted by size (largest first). Useful for identifying which games take up the most space.<br><br><strong>Nothing is deleted</strong> - this only reports what it finds.<br><div class="confirm-form"><label style="min-width:0;color:var(--text);font-size:13px;">ROM directories to scan:</label><div class="path-list" id="romSortPaths"></div><button class="path-add" onclick="addRomSortPath()">+ Add path</button></div>`,
+    action: () => runRomSizeSorter(),
+    onOpen: () => {
+      const list = document.getElementById('romSortPaths');
+      list.innerHTML = '';
+      ['/run/media/deck/EmuDeck/Emulation/roms', '/home/deck/Emulation/roms'].forEach(p => addRomSortPathValue(p));
+    }
   },
   romMetadata: {
     title: 'Remove ROMs Metadata',
@@ -1192,8 +1213,7 @@ async function runFullRecovery() {
 }
 
 async function runDuplicateRomFinder() {
-  const pathInputs = document.querySelectorAll('#dupeRomPaths .path-item input');
-  const paths = Array.from(pathInputs).map(i => i.value.trim()).filter(Boolean);
+  const paths = getPathsFromList('dupeRomPaths');
   disableBtn('btnDupeRom');
   openTerminal('Duplicate ROM Finder');
   appendTerminal('Scanning for duplicate ROMs...\n');
@@ -1211,11 +1231,13 @@ async function runDuplicateRomFinder() {
 }
 
 async function runFindLostRoms() {
+  const paths = getPathsFromList('lostRomPaths');
   disableBtn('btnLostRoms');
   openTerminal('Find Lost ROMs');
-  appendTerminal('Searching for lost ROMs...\n');
+  if (paths.length > 0) appendTerminal('Excluding: ' + paths.join(', ') + '\n');
+  appendTerminal('Searching for lost ROMs...\n\n');
   try {
-    const result = await invoke('find_lost_roms');
+    const result = await invoke('find_lost_roms', { paths });
     appendTerminal(result.stdout);
     if (result.stderr) appendTerminal('\n--- stderr ---\n' + result.stderr);
     setTermStatus(result.code === 0 ? 'done' : 'error');
@@ -1227,11 +1249,12 @@ async function runFindLostRoms() {
 }
 
 async function runRomSizeSorter() {
+  const paths = getPathsFromList('romSortPaths');
   disableBtn('btnRomSort');
   openTerminal('ROM Size Sorter');
   appendTerminal('Scanning ROMs...\n');
   try {
-    const result = await invoke('rom_size_sorter');
+    const result = await invoke('rom_size_sorter', { paths });
     appendTerminal(result.stdout);
     if (result.stderr) appendTerminal('\n--- stderr ---\n' + result.stderr);
     setTermStatus(result.code === 0 ? 'done' : 'error');
@@ -1326,15 +1349,24 @@ async function runUninstallDecky() {
 // Path list helpers (Duplicate ROM Finder)
 // ─────────────────────────────────────────────
 
-function addDupeRomPath() { addDupeRomPathValue(''); }
-
-function addDupeRomPathValue(value) {
-  const list = document.getElementById('dupeRomPaths');
+function addPathToList(listId, value) {
+  const list = document.getElementById(listId);
   const item = document.createElement('div');
   item.className = 'path-item';
   item.innerHTML = `<input type="text" value="${value}" placeholder="/path/to/roms" /><button class="path-remove" onclick="this.parentElement.remove()">x</button>`;
   list.appendChild(item);
 }
+
+function getPathsFromList(listId) {
+  return Array.from(document.querySelectorAll(`#${listId} .path-item input`)).map(i => i.value.trim()).filter(Boolean);
+}
+
+function addDupeRomPath() { addPathToList('dupeRomPaths', ''); }
+function addDupeRomPathValue(p) { addPathToList('dupeRomPaths', p); }
+function addLostRomPath() { addPathToList('lostRomPaths', ''); }
+function addLostRomPathValue(p) { addPathToList('lostRomPaths', p); }
+function addRomSortPath() { addPathToList('romSortPaths', ''); }
+function addRomSortPathValue(p) { addPathToList('romSortPaths', p); }
 
 // ─────────────────────────────────────────────
 // Terminal expand toggle

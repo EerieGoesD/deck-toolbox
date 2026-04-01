@@ -3,10 +3,14 @@
 # Searches common Steam Deck locations while skipping known roms paths,
 # system directories, and other irrelevant locations.
 
-KNOWN_ROMS_DIRS=(
-  "/run/media/deck/EmuDeck/Emulation/roms"
-  "/home/deck/Emulation/roms"
-)
+if (( $# > 0 )); then
+  KNOWN_ROMS_DIRS=("$@")
+else
+  KNOWN_ROMS_DIRS=(
+    "/run/media/deck/EmuDeck/Emulation/roms"
+    "/home/deck/Emulation/roms"
+  )
+fi
 
 ROM_EXTENSIONS=(
   "*.7z" "*.chd" "*.iso" "*.cue"

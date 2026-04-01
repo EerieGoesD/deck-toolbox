@@ -1,13 +1,17 @@
 #!/bin/bash
 # Scans all ROM directories and lists ROMs sorted by size (largest to smallest).
-# Usage: rom_size_sorter.sh [count] (default: show all)
+# Usage: rom_size_sorter.sh [path1] [path2] ... (default paths if none given)
 
-count="${1:-}"
+if (( $# > 0 )); then
+  ROMS_DIRS=("$@")
+else
+  ROMS_DIRS=(
+    "/home/deck/Emulation/roms"
+    "/run/media/deck/EmuDeck/Emulation/roms"
+  )
+fi
 
-ROMS_DIRS=(
-  "/home/deck/Emulation/roms"
-  "/run/media/deck/EmuDeck/Emulation/roms"
-)
+count=""
 
 echo "=== ROM Size Sorter ==="
 echo ""
