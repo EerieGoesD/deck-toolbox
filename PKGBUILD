@@ -7,14 +7,16 @@ url="https://github.com/EerieGoesD/deck-toolbox"
 license=('MIT')
 depends=('webkit2gtk-4.1' 'gtk3')
 
+BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 build() {
-  cd "$srcdir/../.."
+  cd "$BASEDIR"
   source "$HOME/.cargo/env" 2>/dev/null || true
   cargo tauri build --no-bundle
 }
 
 package() {
-  cd "$srcdir/../.."
+  cd "$BASEDIR"
 
   # Binary
   install -Dm755 "src-tauri/target/release/deck-toolbox" "$pkgdir/usr/bin/deck-toolbox"
