@@ -4,7 +4,7 @@ registerJobs({
     severity: 'destructive',
     label: 'Destructive action',
     requiresSudo: true,
-    body: `This will:<br><br>1. Download and run the <strong>official SteamDeckHomebrew uninstall script</strong><br>2. Remove leftover services, logs, loader config, and template plugins<br><br>Your personal plugins and their data are <strong>kept</strong>. Requires an <strong>internet connection</strong>.`,
+    body: `This will:<br>1. Download and run the <strong>official SteamDeckHomebrew uninstall script</strong><br>2. Remove leftover services, logs, loader config, and template plugins<br><br>Your personal plugins and their data are <strong>kept</strong>. Requires an <strong>internet connection</strong>.`,
     action: () => runUninstallDecky()
   }
 });

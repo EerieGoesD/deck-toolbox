@@ -3,7 +3,7 @@ registerJobs({
     title: 'Generate .cue from .bin',
     severity: 'safe',
     label: 'Read-only operation',
-    body: `This will:<br><br>&#8226; Open a file picker to select <code>.bin</code> disc image files<br>&#8226; Create a matching <code>.cue</code> sheet for each file (MODE2/2352, single track)<br>&#8226; Skip any files that already have a <code>.cue</code><br><br>Your <code>.bin</code> files will <strong>not</strong> be modified.`,
+    body: `This will:<br>&#8226; Open a file picker to select <code>.bin</code> disc image files<br>&#8226; Create a matching <code>.cue</code> sheet for each file (MODE2/2352, single track)<br>&#8226; Skip any files that already have a <code>.cue</code><br><br>Your <code>.bin</code> files will <strong>not</strong> be modified.`,
     action: () => runCue()
   }
 });

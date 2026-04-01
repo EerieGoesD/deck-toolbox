@@ -3,7 +3,7 @@ registerJobs({
     title: 'Find Decky Leftovers',
     severity: 'safe',
     label: 'Read-only scan',
-    body: `This will:<br><br>&#8226; Check known Decky Loader paths (<code>~/homebrew</code>, <code>~/.local/share/decky</code>, <code>~/.config/decky</code>, systemd services)<br>&#8226; Search for any remaining files with "decky" or "plugin_loader" in the name<br>&#8226; Show file sizes and locations<br><br><strong>Nothing is deleted</strong> - this only reports what it finds.`,
+    body: `This will:<br>&#8226; Check known Decky Loader paths (<code>~/homebrew</code>, <code>~/.local/share/decky</code>, <code>~/.config/decky</code>, systemd services)<br>&#8226; Search for any remaining files with "decky" or "plugin_loader" in the name<br>&#8226; Show file sizes and locations<br><br><strong>Nothing is deleted</strong> - this only reports what it finds.`,
     action: () => runFindDeckyLeftovers()
   }
 });

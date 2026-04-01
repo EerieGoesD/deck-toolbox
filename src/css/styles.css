@@ -261,6 +261,24 @@ header::after {
   line-height: 1.6;
 }
 
+.tool-tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 5px;
+}
+
+.tool-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.3px;
+}
+
+.tool-tag.fix-boot { background: rgba(74,234,154,0.12); color: var(--success); }
+.tool-tag.fix-visual { background: rgba(90,212,245,0.12); color: var(--info); }
+
 .tool-btn {
   font-family: var(--sans);
   font-weight: 700;

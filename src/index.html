@@ -83,6 +83,7 @@
         <div class="tool-info">
           <div class="tool-name">Reset Steam Client</div>
           <div class="tool-desc">Backup and reset the Steam directory. Sign-in required after.</div>
+          <div class="tool-tags"><span class="tool-tag fix-boot">Can fix boot loops</span></div>
         </div>
         <button class="tool-btn warn" id="btnSteam" onclick="confirmAction('steam')">Run</button>
       </div>
@@ -90,6 +91,7 @@
         <div class="tool-info">
           <div class="tool-name">Reset Gamescope</div>
           <div class="tool-desc">Clear Gamescope state/config. Fixes display glitches.</div>
+          <div class="tool-tags"><span class="tool-tag fix-boot">Can fix boot loops</span><span class="tool-tag fix-visual">Can fix visual glitches</span></div>
         </div>
         <button class="tool-btn warn" id="btnGamescope" onclick="confirmAction('gamescope')">Run</button>
       </div>
@@ -165,6 +167,7 @@
         <div class="tool-info">
           <div class="tool-name">Full Recovery (Steam + Gamescope)</div>
           <div class="tool-desc">Nuclear option for boot loops. Resets Steam and Gamescope.</div>
+          <div class="tool-tags"><span class="tool-tag fix-boot">Can fix boot loops</span><span class="tool-tag fix-visual">Can fix visual glitches</span></div>
         </div>
         <button class="tool-btn danger" id="btnRecovery" onclick="confirmAction('recovery')">Run</button>
       </div>
