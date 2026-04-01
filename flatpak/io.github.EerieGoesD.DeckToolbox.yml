@@ -18,14 +18,20 @@ modules:
     buildsystem: simple
     build-commands:
       - install -Dm755 deck-toolbox /app/bin/deck-toolbox
+      - install -Dm755 deck-toolbox.bin /app/bin/deck-toolbox.bin
       - install -Dm644 io.github.EerieGoesD.DeckToolbox.desktop /app/share/applications/io.github.EerieGoesD.DeckToolbox.desktop
       - install -Dm644 io.github.EerieGoesD.DeckToolbox.png /app/share/icons/hicolor/256x256/apps/io.github.EerieGoesD.DeckToolbox.png
       - install -Dm644 io.github.EerieGoesD.DeckToolbox.metainfo.xml /app/share/metainfo/io.github.EerieGoesD.DeckToolbox.metainfo.xml
       - mkdir -p /app/share/deck-toolbox/scripts
       - install -m755 scripts/*.sh /app/share/deck-toolbox/scripts/
+      - mkdir -p /app/lib
+      - if ls libs/*.so* 1>/dev/null 2>&1; then cp -a libs/*.so* /app/lib/; fi
+      - if [ -d libs/webkit2gtk-4.1 ]; then cp -a libs/webkit2gtk-4.1 /app/lib/; fi
     sources:
       - type: file
         path: deck-toolbox
+      - type: file
+        path: deck-toolbox.bin
       - type: file
         path: io.github.EerieGoesD.DeckToolbox.desktop
       - type: file
@@ -35,3 +41,6 @@ modules:
       - type: dir
         path: scripts
         dest: scripts
+      - type: dir
+        path: libs
+        dest: libs

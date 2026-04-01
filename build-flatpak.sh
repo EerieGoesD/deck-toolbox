@@ -36,13 +36,39 @@ echo ""
 # Step 4: Stage files and build
 echo "[4/4] Building Flatpak bundle..."
 rm -rf "$STAGING"
-mkdir -p "$STAGING/scripts"
+mkdir -p "$STAGING/scripts" "$STAGING/libs"
 
 cp "$REPO_DIR/src-tauri/target/release/deck-toolbox" "$STAGING/deck-toolbox"
 cp "$REPO_DIR/io.github.EerieGoesD.DeckToolbox.desktop" "$STAGING/"
 cp "$REPO_DIR/icons/io.github.EerieGoesD.DeckToolbox.png" "$STAGING/"
 cp "$REPO_DIR/io.github.EerieGoesD.DeckToolbox.metainfo.xml" "$STAGING/"
 cp "$REPO_DIR/src-tauri/resources/scripts/"*.sh "$STAGING/scripts/"
+
+# Bundle system WebKitGTK and its dependencies
+echo "Copying system WebKitGTK libraries..."
+for lib in $(ldd "$STAGING/deck-toolbox" | grep "=> /" | awk '{print $3}'); do
+  # Only copy libs not in the GNOME runtime (webkit, soup, javascriptcore, etc.)
+  basename=$(basename "$lib")
+  if echo "$basename" | grep -qiE "webkit|javascriptcore|soup-3|enchant|manette|wpe|gst"; then
+    cp -L "$lib" "$STAGING/libs/" 2>/dev/null || true
+  fi
+done
+# Also grab WebKit helper processes
+WEBKIT_DIR=$(pkg-config --variable=exec_prefix webkit2gtk-4.1 2>/dev/null || echo "/usr")/lib/webkit2gtk-4.1
+if [[ -d "$WEBKIT_DIR" ]]; then
+  cp -rL "$WEBKIT_DIR" "$STAGING/libs/" 2>/dev/null || true
+fi
+
+# Create a wrapper script that sets LD_LIBRARY_PATH
+mv "$STAGING/deck-toolbox" "$STAGING/deck-toolbox.bin"
+cat > "$STAGING/deck-toolbox" << 'WRAPPER'
+#!/bin/bash
+DIR="$(dirname "$(readlink -f "$0")")"
+export LD_LIBRARY_PATH="$DIR/../lib:$LD_LIBRARY_PATH"
+export WEBKIT_EXEC_PATH="$DIR/../lib/webkit2gtk-4.1"
+exec "$DIR/deck-toolbox.bin" "$@"
+WRAPPER
+chmod +x "$STAGING/deck-toolbox"
 
 # Update manifest paths to use staging dir
 cd "$STAGING"
