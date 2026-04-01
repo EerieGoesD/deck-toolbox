@@ -30,7 +30,7 @@ echo ""
 
 # Step 3: Install SDK if needed
 echo "[3/4] Ensuring Flatpak SDK is available..."
-flatpak install --user --noninteractive flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08 2>/dev/null || true
+flatpak install --user --noninteractive flathub org.gnome.Platform//47 org.gnome.Sdk//47 2>/dev/null || true
 echo ""
 
 # Step 4: Stage files and build
