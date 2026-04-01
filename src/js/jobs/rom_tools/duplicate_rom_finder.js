@@ -57,6 +57,7 @@ function showDuplicateSelectionDialog(groups) {
   html += `</div>`;
 
   document.getElementById('confirmBody').innerHTML = html;
+  document.querySelector('.confirm-box').classList.add('wide');
   const yesBtn = document.getElementById('confirmYes');
   yesBtn.textContent = 'Delete Selected';
   yesBtn.className = 'tool-btn danger';

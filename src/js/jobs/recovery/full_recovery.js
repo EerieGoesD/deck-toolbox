@@ -3,7 +3,7 @@ registerJobs({
     title: 'Full Recovery',
     severity: 'destructive',
     label: 'Destructive action',
-    body: `This will:<br><br>1. Rename Steam directory to <code>Steam_backup</code> (with timestamp)<br>2. Delete all Gamescope state and config<br><br>Use when your Deck is stuck in a <strong>boot loop</strong>. You will need to <strong>reboot</strong> and <strong>sign in to Steam</strong> again.<br><br>Backup folders can be very large. You will be asked if you want to delete them after.`,
+    body: `Use when your Deck is stuck in a <strong>boot loop</strong>.<br><br>This will:<br><br>1. Rename Steam directory to <code>Steam_backup</code> (with timestamp)<br>2. Delete all Gamescope state and config<br><br>You will need to <strong>reboot</strong> and <strong>sign in to Steam</strong> again.<br><br><strong>Warning:</strong> Steam games installed on the <strong>internal drive</strong> are stored inside the Steam directory. After the reset, Steam will need to redownload them. If you choose to delete the backup folder afterward, those games will be permanently removed. Games on SD card are safe.`,
     action: () => runFullRecovery()
   }
 });

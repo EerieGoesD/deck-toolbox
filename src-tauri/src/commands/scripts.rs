@@ -335,21 +335,36 @@ pub async fn set_user_password(new_password: String) -> Result<ScriptResult, Str
 #[tauri::command]
 pub async fn delete_files(files: Vec<String>) -> Result<ScriptResult, String> {
     tauri::async_runtime::spawn_blocking(move || {
-        let mut deleted = Vec::new();
+        let mut trashed = Vec::new();
         let mut errors = Vec::new();
+
+        // Use gio trash (available on SteamOS) to move files to Trash
         for f in &files {
-            match std::fs::remove_file(f) {
-                Ok(_) => deleted.push(format!("Deleted: {}", f)),
-                Err(e) => errors.push(format!("Failed: {} - {}", f, e)),
+            let output = Command::new("gio")
+                .args(["trash", f])
+                .output();
+
+            match output {
+                Ok(o) if o.status.success() => {
+                    trashed.push(format!("Trashed: {}", f));
+                }
+                Ok(o) => {
+                    let err = String::from_utf8_lossy(&o.stderr).trim().to_string();
+                    errors.push(format!("Failed: {} - {}", f, err));
+                }
+                Err(e) => {
+                    errors.push(format!("Failed: {} - {}", f, e));
+                }
             }
         }
-        let stdout = if deleted.is_empty() && errors.is_empty() {
+
+        let stdout = if trashed.is_empty() && errors.is_empty() {
             "No files selected.\n".into()
         } else {
             let mut out = String::new();
-            for d in &deleted { out.push_str(&format!("{}\n", d)); }
+            for d in &trashed { out.push_str(&format!("{}\n", d)); }
             for e in &errors { out.push_str(&format!("{}\n", e)); }
-            out.push_str(&format!("\n{} deleted, {} failed.\n", deleted.len(), errors.len()));
+            out.push_str(&format!("\n{} moved to Trash, {} failed.\n", trashed.len(), errors.len()));
             out
         };
         Ok(ScriptResult {

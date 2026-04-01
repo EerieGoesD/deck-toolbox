@@ -3,7 +3,7 @@ registerJobs({
     title: 'Reset Gamescope',
     severity: 'destructive',
     label: 'Destructive action',
-    body: `This will delete:<br><br>&#8226; <code>~/.local/state/gamescope</code><br>&#8226; <code>~/.config/gamescope</code><br><br>Fixes display glitches, resolution issues, and rendering problems. No user data is lost. <strong>Reboot recommended</strong> after.`,
+    body: `This can fix <strong>boot loops, display glitches, resolution issues, and visual rendering problems</strong>.<br><br>This will delete:<br><br>&#8226; <code>~/.local/state/gamescope</code><br>&#8226; <code>~/.config/gamescope</code><br><br>No games or user data are affected. Only Gamescope's display compositor config is removed. <strong>Reboot recommended</strong> after.`,
     action: () => runGamescopeReset()
   }
 });

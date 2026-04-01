@@ -293,6 +293,7 @@ function confirmAction(key) {
 
 function closeConfirm() {
   document.getElementById('confirmOverlay').classList.remove('open');
+  document.querySelector('.confirm-box').classList.remove('wide');
 }
 
 document.getElementById('confirmOverlay').addEventListener('click', e => {

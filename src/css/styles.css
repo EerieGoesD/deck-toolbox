@@ -400,6 +400,7 @@ header::after {
   overflow: hidden;
   animation: fadeScale 0.2s ease-out;
 }
+.confirm-box.wide { max-width: 720px; }
 
 @keyframes fadeScale {
   from { transform: scale(0.95); opacity: 0; }
