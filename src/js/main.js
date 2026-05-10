@@ -164,7 +164,64 @@ function switchTab(name) {
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   document.querySelector(`.tab-content[data-tab="${name}"]`).classList.add('active');
   event.currentTarget.classList.add('active');
+  if (name === 'storage') loadStorageBars();
 }
+
+// ─────────────────────────────────────────────
+// Storage size bars
+// ─────────────────────────────────────────────
+
+function formatBytes(bytes) {
+  if (!bytes && bytes !== 0) return '-';
+  if (bytes < 1024) return bytes + ' B';
+  const units = ['KB', 'MB', 'GB', 'TB'];
+  let value = bytes / 1024;
+  let i = 0;
+  while (value >= 1024 && i < units.length - 1) { value /= 1024; i++; }
+  return (value >= 100 ? value.toFixed(0) : value.toFixed(1)) + ' ' + units[i];
+}
+
+async function loadStorageBars() {
+  const container = document.getElementById('storageBars');
+  if (!container) return;
+  container.innerHTML = '<div class="storage-bars-empty">Reading storage info...</div>';
+  try {
+    const disks = await invoke('get_disk_usage');
+    if (!disks || disks.length === 0) {
+      container.innerHTML = '<div class="storage-bars-empty">Could not read storage info.</div>';
+      return;
+    }
+    container.innerHTML = disks.map(d => {
+      const total = Number(d.total) || 0;
+      const used = Number(d.used) || 0;
+      const pct = total > 0 ? Math.min(100, (used / total) * 100) : 0;
+      const usedFmt = formatBytes(used);
+      const totalFmt = formatBytes(total);
+      const fillClass = pct >= 90 ? 'danger' : pct >= 75 ? 'warn' : '';
+      const labelOutside = pct < 28;
+      const usedLabelStyle = labelOutside
+        ? `left: ${pct}%; transform: translate(6px, -50%);`
+        : `left: ${pct}%; transform: translate(calc(-100% - 6px), -50%);`;
+      const usedLabelClass = labelOutside ? 'storage-bar-used outside' : 'storage-bar-used';
+      return `
+        <div class="storage-bar-row">
+          <div class="storage-bar-header">
+            <span class="storage-bar-name">${d.label}</span>
+            <span class="storage-bar-percent">${pct.toFixed(1)}% used</span>
+          </div>
+          <div class="storage-bar-track">
+            <div class="storage-bar-fill ${fillClass}" style="width: ${pct}%"></div>
+            <span class="${usedLabelClass}" style="${usedLabelStyle}">${usedFmt}</span>
+            <span class="storage-bar-total">${totalFmt}</span>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (err) {
+    container.innerHTML = '<div class="storage-bars-empty">Error reading storage info.</div>';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => loadStorageBars());
 
 // ─────────────────────────────────────────────
 // Terminal (right panel)

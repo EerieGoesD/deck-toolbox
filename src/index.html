@@ -128,6 +128,15 @@
     </div>
 
     <div class="tab-content" data-tab="storage">
+      <div class="storage-overview" id="storageOverview">
+        <div class="storage-overview-header">
+          <span class="storage-overview-title">Size</span>
+          <button class="storage-refresh-btn" onclick="loadStorageBars()" title="Refresh">Refresh</button>
+        </div>
+        <div class="storage-bars" id="storageBars">
+          <div class="storage-bars-empty">Loading storage info...</div>
+        </div>
+      </div>
       <div class="tool-card">
         <div class="tool-info">
           <div class="tool-name">Large File Finder</div>

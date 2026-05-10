@@ -546,6 +546,111 @@ header::after {
 }
 .path-add:hover { border-color: var(--accent); }
 
+/* ── Storage Overview (Size bars) ── */
+.storage-overview {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 18px 16px;
+  margin-bottom: 4px;
+}
+
+.storage-overview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.storage-overview-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.storage-refresh-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.storage-refresh-btn:hover { color: var(--text); border-color: var(--accent); }
+
+.storage-bars { display: flex; flex-direction: column; gap: 12px; }
+
+.storage-bars-empty {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  padding: 6px 2px;
+}
+
+.storage-bar-row { display: flex; flex-direction: column; gap: 6px; }
+
+.storage-bar-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.storage-bar-name { color: var(--text); font-weight: 600; }
+.storage-bar-percent { color: var(--muted); }
+
+.storage-bar-track {
+  position: relative;
+  height: 24px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.storage-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 100%);
+  transition: width 0.4s ease;
+}
+.storage-bar-fill.warn { background: linear-gradient(90deg, var(--warn) 0%, #ffb84d 100%); }
+.storage-bar-fill.danger { background: linear-gradient(90deg, var(--danger) 0%, #ff9999 100%); }
+
+.storage-bar-used {
+  position: absolute;
+  top: 50%;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: #1a1a24;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow: 0 0 2px rgba(255,255,255,0.35);
+}
+.storage-bar-used.outside {
+  color: var(--text);
+  text-shadow: none;
+}
+
+.storage-bar-total {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  pointer-events: none;
+}
+
 /* ── Terminal Expand ── */
 .panel-right.expanded { width: 100%; position: absolute; inset: 0; z-index: 10; }
 

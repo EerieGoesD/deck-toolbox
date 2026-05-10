@@ -30,6 +30,7 @@ pub fn run() {
             commands::scripts::deck_declutter,
             commands::scripts::uninstall_decky,
             commands::backups::delete_steam_backups,
+            commands::disk::get_disk_usage,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
