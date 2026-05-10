@@ -73,24 +73,51 @@ fn run_script_internal(
         .clone();
 
     let script_str = host_path.to_string_lossy().to_string();
-    let args_str: Vec<String> = args.iter().map(|a| format!("\"{}\"", a)).collect();
-    let args_joined = args_str.join(" ");
 
-    let wrapper = if let Some(ref pw) = sudo_password {
-        format!(
-            "echo '{}' | sudo -S -v 2>/dev/null; bash \"{}\" {}",
-            pw.replace('\'', "'\\''"),
-            script_str,
-            args_joined
-        )
+    // Wrapper reads the sudo password from stdin (line 1), validates it once,
+    // then replaces the `sudo` builtin in this bash session with a function
+    // that strips -n and pipes the password via -S. Scripts can keep using
+    // `sudo -n cmd` and they will actually authenticate. The script itself
+    // gets stdin closed so it cannot consume the password line.
+    let wrapper_with_sudo = r#"
+read -r DT_SUDO_PASS
+if ! printf '%s\n' "$DT_SUDO_PASS" | command sudo -S -v 2>/dev/null; then
+    echo "Sudo authentication failed - check the password set via Unlock" >&2
+    exit 64
+fi
+sudo() {
+    local f=()
+    local a
+    for a in "$@"; do
+        [[ "$a" != "-n" ]] && f+=("$a")
+    done
+    printf '%s\n' "$DT_SUDO_PASS" | command sudo -S "${f[@]}"
+}
+export -f sudo
+bash "$1" "${@:2}" </dev/null
+"#;
+
+    let mut command = if let Some(_pw) = &sudo_password {
+        let mut c = host_command("bash");
+        c.arg("-c").arg(wrapper_with_sudo).arg("--").arg(&script_str);
+        for a in args { c.arg(a); }
+        c.stdin(Stdio::piped());
+        c
     } else {
-        format!("bash \"{}\" {}", script_str, args_joined)
+        let mut c = host_command("bash");
+        c.arg(&script_str);
+        for a in args { c.arg(a); }
+        c
     };
+    command.stdout(Stdio::piped()).stderr(Stdio::piped());
 
-    let output = host_command("bash")
-        .args(["-c", &wrapper])
-        .output()
-        .map_err(|e| format!("spawn bash: {}", e))?;
+    let mut child = command.spawn().map_err(|e| format!("spawn bash: {}", e))?;
+
+    if let (Some(pw), Some(mut stdin)) = (sudo_password.as_ref(), child.stdin.take()) {
+        let _ = writeln!(stdin, "{}", pw);
+    }
+
+    let output = child.wait_with_output().map_err(|e| format!("wait bash: {}", e))?;
 
     Ok(ScriptResult {
         code: output.status.code().unwrap_or(-1),
