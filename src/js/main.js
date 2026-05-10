@@ -130,10 +130,20 @@ async function cacheSudo() {
     } else {
       status.className = 'sudo-status fail';
       status.textContent = 'Wrong password';
+      const detail = (result.stderr || result.stdout || '').trim();
+      if (detail) {
+        openTerminal('Sudo authentication');
+        appendTerminal('Sudo rejected the password.\n\n--- sudo stderr ---\n' + detail + '\n');
+        setTermStatus('error');
+      }
     }
   } catch (err) {
+    const msg = err?.message || String(err);
     status.className = 'sudo-status fail';
-    status.textContent = 'Error';
+    status.textContent = 'Error: ' + msg;
+    openTerminal('Sudo authentication');
+    appendTerminal('cache_sudo failed: ' + msg + '\n');
+    setTermStatus('error');
   }
 }
 
@@ -392,6 +402,13 @@ function confirmAction(key) {
           document.getElementById('confirmSudoInput').value = '';
           document.getElementById('confirmSudoInput').style.borderColor = 'var(--danger)';
           document.getElementById('confirmSudoInput').placeholder = 'Wrong password - try again';
+          const detail = (result.stderr || result.stdout || '').trim();
+          if (detail) {
+            closeConfirm();
+            openTerminal('Sudo authentication');
+            appendTerminal('Sudo rejected the password.\n\n--- sudo stderr ---\n' + detail + '\n');
+            setTermStatus('error');
+          }
           return;
         }
         sudoAuthenticated = true;
@@ -401,6 +418,11 @@ function confirmAction(key) {
           await invoke('save_sudo_password', { password: pw });
         }
       } catch (err) {
+        const msg = err?.message || String(err);
+        closeConfirm();
+        openTerminal('Sudo authentication');
+        appendTerminal('cache_sudo failed: ' + msg + '\n');
+        setTermStatus('error');
         return;
       }
     }

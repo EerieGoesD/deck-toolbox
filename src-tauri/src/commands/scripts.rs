@@ -7,6 +7,20 @@ use tauri::Manager;
 /// Stores the sudo password so scripts can use it
 pub struct SudoPassword(pub Mutex<Option<String>>);
 
+/// Build a Command that runs on the host when we are inside a Flatpak sandbox.
+/// Uses `flatpak-spawn --host` (allowed by --talk-name=org.freedesktop.Flatpak)
+/// so commands like sudo, bash, passwd find a real /etc/passwd, /etc/sudoers,
+/// and the user's actual SteamOS environment.
+fn host_command(program: &str) -> Command {
+    if std::path::Path::new("/.flatpak-info").exists() {
+        let mut cmd = Command::new("flatpak-spawn");
+        cmd.arg("--host").arg(program);
+        cmd
+    } else {
+        Command::new(program)
+    }
+}
+
 #[derive(serde::Serialize)]
 pub struct ScriptResult {
     pub code: i32,
@@ -27,21 +41,24 @@ fn run_script_internal(
     script_name: &str,
     args: &[&str],
 ) -> Result<ScriptResult, String> {
-    let script_path = scripts_dir(app).join(script_name);
+    let bundled_path = scripts_dir(app).join(script_name);
     let home = dirs::home_dir().ok_or("Cannot find home directory")?;
 
-    // Ensure script is executable (Linux/macOS only)
+    // Copy the script out of the Flatpak overlay (which the host bash cannot
+    // read) into the user's cache dir. ~/.cache/... is bind-mounted into the
+    // sandbox, so both sides see the same file.
+    let cache_dir = home.join(".cache").join("deck-toolbox").join("scripts");
+    std::fs::create_dir_all(&cache_dir).map_err(|e| format!("create cache dir: {}", e))?;
+    let host_path = cache_dir.join(script_name);
+    std::fs::copy(&bundled_path, &host_path)
+        .map_err(|e| format!("copy script {}: {}", script_name, e))?;
+
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        if let Ok(metadata) = std::fs::metadata(&script_path) {
-            let mut perms = metadata.permissions();
-            perms.set_mode(0o755);
-            let _ = std::fs::set_permissions(&script_path, perms);
-        }
+        let _ = std::fs::set_permissions(&host_path, std::fs::Permissions::from_mode(0o755));
     }
 
-    // Check if we have a stored sudo password
     let sudo_password = app
         .state::<SudoPassword>()
         .0
@@ -49,14 +66,11 @@ fn run_script_internal(
         .unwrap()
         .clone();
 
-    // Build a wrapper script that caches sudo first if password is available
-    let script_str = script_path.to_string_lossy().to_string();
+    let script_str = host_path.to_string_lossy().to_string();
     let args_str: Vec<String> = args.iter().map(|a| format!("\"{}\"", a)).collect();
     let args_joined = args_str.join(" ");
 
     let wrapper = if let Some(ref pw) = sudo_password {
-        // Pipe password to sudo -S -v to cache credentials in this bash session,
-        // then run the actual script
         format!(
             "echo '{}' | sudo -S -v 2>/dev/null; bash \"{}\" {}",
             pw.replace('\'', "'\\''"),
@@ -67,12 +81,10 @@ fn run_script_internal(
         format!("bash \"{}\" {}", script_str, args_joined)
     };
 
-    let output = Command::new("bash")
+    let output = host_command("bash")
         .args(["-c", &wrapper])
-        .env("HOME", &home)
-        .current_dir(&home)
         .output()
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| format!("spawn bash: {}", e))?;
 
     Ok(ScriptResult {
         code: output.status.code().unwrap_or(-1),
@@ -85,19 +97,19 @@ fn run_script_internal(
 pub async fn cache_sudo(app: AppHandle, password: String) -> Result<ScriptResult, String> {
     let pw = password.clone();
     let result = tauri::async_runtime::spawn_blocking(move || {
-        let mut child = Command::new("sudo")
+        let mut child = host_command("sudo")
             .args(["-S", "-v"])
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| format!("spawn sudo: {}", e))?;
 
         if let Some(mut stdin) = child.stdin.take() {
             let _ = writeln!(stdin, "{}", pw);
         }
 
-        let output = child.wait_with_output().map_err(|e| e.to_string())?;
+        let output = child.wait_with_output().map_err(|e| format!("sudo wait: {}", e))?;
 
         Ok::<ScriptResult, String>(ScriptResult {
             code: output.status.code().unwrap_or(-1),
@@ -181,7 +193,7 @@ pub async fn load_sudo_password(app: AppHandle) -> Result<String, String> {
     // Validate it still works
     let pw = password.clone();
     let valid = tauri::async_runtime::spawn_blocking(move || {
-        let mut child = Command::new("sudo")
+        let mut child = host_command("sudo")
             .args(["-S", "-v"])
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
@@ -258,7 +270,7 @@ pub async fn check_has_password() -> Result<bool, String> {
     // Try sudo -n true - if it works, password is cached or NOPASSWD.
     // Try sudo -S true with empty password - if it works, no password is set.
     let result = tauri::async_runtime::spawn_blocking(|| {
-        let mut child = Command::new("sudo")
+        let mut child = host_command("sudo")
             .args(["-S", "true"])
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
@@ -285,13 +297,13 @@ pub async fn set_user_password(new_password: String) -> Result<ScriptResult, Str
     tauri::async_runtime::spawn_blocking(move || {
         // On SteamOS, deck user has no password by default.
         // Use chpasswd which reads "user:password" from stdin
-        let mut child = Command::new("sudo")
+        let mut child = host_command("sudo")
             .args(["-S", "chpasswd"])
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| format!("spawn sudo chpasswd: {}", e))?;
 
         if let Some(mut stdin) = child.stdin.take() {
             // First line: empty password for sudo (deck has no password by default)
@@ -304,13 +316,13 @@ pub async fn set_user_password(new_password: String) -> Result<ScriptResult, Str
 
         // If that didn't work (sudo needs password), try with passwd --stdin
         if !output.status.success() {
-            let mut child2 = Command::new("passwd")
+            let mut child2 = host_command("passwd")
                 .args(["--stdin", "deck"])
                 .stdin(Stdio::piped())
                 .stdout(Stdio::piped())
                 .stderr(Stdio::piped())
                 .spawn()
-                .map_err(|e| e.to_string())?;
+                .map_err(|e| format!("spawn passwd: {}", e))?;
 
             if let Some(mut stdin) = child2.stdin.take() {
                 let _ = writeln!(stdin, "{}", new_password);
