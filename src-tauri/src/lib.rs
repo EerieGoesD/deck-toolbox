@@ -4,13 +4,6 @@ use std::sync::Mutex;
 
 pub fn run() {
     tauri::Builder::default()
-        .setup(|app| {
-            use tauri::Manager;
-            if let Some(win) = app.get_webview_window("main") {
-                win.open_devtools();
-            }
-            Ok(())
-        })
         .plugin(tauri_plugin_dialog::init())
         .manage(commands::scripts::SudoPassword(Mutex::new(None)))
         .invoke_handler(tauri::generate_handler![
