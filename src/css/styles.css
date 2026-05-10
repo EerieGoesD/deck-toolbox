@@ -235,7 +235,7 @@ header::after {
 
 /* ── Left Panel (tools) ── */
 .panel-left {
-  width: 38%;
+  flex: 1 1 0;
   min-width: 0;
   overflow: hidden;
   display: flex;
