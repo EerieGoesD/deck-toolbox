@@ -29,6 +29,12 @@ pub struct ScriptResult {
 }
 
 fn scripts_dir(app: &AppHandle) -> std::path::PathBuf {
+    // The Flatpak manifest installs scripts to /app/share/deck-toolbox/scripts/.
+    // Tauri's resource_dir does not know about that location, so probe it first.
+    let flatpak_scripts = std::path::PathBuf::from("/app/share/deck-toolbox/scripts");
+    if flatpak_scripts.exists() {
+        return flatpak_scripts;
+    }
     app.path()
         .resource_dir()
         .expect("failed to resolve resource dir")

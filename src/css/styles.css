@@ -404,6 +404,13 @@ header::after {
 .terminal-body .line-ok { color: var(--success); }
 .terminal-body .line-warn { color: var(--warn); }
 .terminal-body .line-err { color: var(--danger); }
+.terminal-body .line-separator {
+  color: var(--accent);
+  font-weight: 700;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  white-space: pre;
+}
 
 .terminal-placeholder {
   flex: 1;

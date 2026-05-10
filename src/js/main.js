@@ -293,11 +293,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function openTerminal(label) {
   document.getElementById('termTitle').textContent = label;
-  document.getElementById('termBody').innerHTML = '';
-  document.getElementById('termBody').style.display = '';
+  const body = document.getElementById('termBody');
+  if (body.children.length > 0) {
+    const sep = document.createElement('div');
+    sep.className = 'line-separator';
+    sep.textContent = '\n──────── ' + label + ' ────────\n';
+    body.appendChild(sep);
+  }
+  body.style.display = '';
   document.getElementById('termPlaceholder').style.display = 'none';
   setTermStatus('running');
   if (termState === 'collapsed') setTermState('half');
+  body.scrollTop = body.scrollHeight;
 }
 
 function appendTerminal(text) {
