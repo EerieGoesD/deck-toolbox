@@ -3,7 +3,7 @@ registerJobs({
     title: 'Find Lost ROMs',
     severity: 'safe',
     label: 'Read-only scan',
-    body: `Searches for ROM files outside of your known ROM directories. Any ROMs found elsewhere are reported as potentially lost.<br><br><strong>Nothing is deleted</strong> - this only reports what it finds.<br><div class="confirm-form"><label style="min-width:0;color:var(--text);font-size:13px;">Known ROM paths (excluded from results):</label><div class="path-list" id="lostRomPaths"></div><button class="path-add" onclick="addLostRomPath()">+ Add path</button></div>`,
+    body: `Searches for ROM files outside of your known ROM directories. Any ROMs found elsewhere are reported as potentially lost.<br><br><strong>Nothing is deleted</strong> - this only reports what it finds.<br><div class="confirm-form"><label class="confirm-form-label">Known ROM paths (excluded from results):</label><div class="path-list" id="lostRomPaths"></div><button class="path-add" data-action="addLostRomPath">+ Add path</button></div>`,
     action: () => runFindLostRoms(),
     onOpen: () => {
       const list = document.getElementById('lostRomPaths');

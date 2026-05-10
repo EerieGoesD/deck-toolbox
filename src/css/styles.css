@@ -148,6 +148,17 @@ header::after {
 }
 .sudo-bar .sudo-btn:hover { background: var(--accent2); }
 
+.sudo-remember { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+.sudo-remember input[type="checkbox"] { cursor: pointer; }
+
+.tabs { margin-top: 10px; }
+
+.confirm-cancel {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
 .sudo-status { font-family: var(--mono); font-size: 13px; font-weight: 600; min-width: 130px; }
 .sudo-status.ok { color: var(--success); }
 .sudo-status.fail { color: var(--danger); }
@@ -503,6 +514,12 @@ header::after {
 .confirm-field select:focus, .confirm-field input:focus { border-color: var(--accent); }
 .confirm-field input[type="number"] { width: 80px; -moz-appearance: textfield; }
 .confirm-field input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
+
+.confirm-form-label {
+  min-width: 0 !important;
+  color: var(--text) !important;
+  font-size: 13px;
+}
 
 .path-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
 .path-item {

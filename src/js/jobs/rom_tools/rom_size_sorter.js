@@ -3,7 +3,7 @@ registerJobs({
     title: 'ROM Size Sorter',
     severity: 'safe',
     label: 'Read-only scan',
-    body: `Lists every ROM file sorted by size (largest first). Useful for identifying which games take up the most space.<br><br><strong>Nothing is deleted</strong> - this only reports what it finds.<br><div class="confirm-form"><label style="min-width:0;color:var(--text);font-size:13px;">ROM directories to scan:</label><div class="path-list" id="romSortPaths"></div><button class="path-add" onclick="addRomSortPath()">+ Add path</button></div>`,
+    body: `Lists every ROM file sorted by size (largest first). Useful for identifying which games take up the most space.<br><br><strong>Nothing is deleted</strong> - this only reports what it finds.<br><div class="confirm-form"><label class="confirm-form-label">ROM directories to scan:</label><div class="path-list" id="romSortPaths"></div><button class="path-add" data-action="addRomSortPath">+ Add path</button></div>`,
     action: () => runRomSizeSorter(),
     onOpen: () => {
       const list = document.getElementById('romSortPaths');

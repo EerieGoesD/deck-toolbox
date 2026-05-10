@@ -3,7 +3,7 @@ registerJobs({
     title: 'Duplicate ROM Finder',
     severity: 'safe',
     label: 'Read-only scan',
-    body: `This will scan each console folder for near-duplicate ROM files using normalized filenames (strips punctuation, ignores case).<br><br><strong>Nothing is deleted</strong> - this only reports what it finds.<br><div class="confirm-form"><label style="min-width:0;color:var(--text);font-size:13px;">Search paths:</label><div class="path-list" id="dupeRomPaths"></div><button class="path-add" onclick="addDupeRomPath()">+ Add path</button></div>`,
+    body: `This will scan each console folder for near-duplicate ROM files using normalized filenames (strips punctuation, ignores case).<br><br><strong>Nothing is deleted</strong> - this only reports what it finds.<br><div class="confirm-form"><label class="confirm-form-label">Search paths:</label><div class="path-list" id="dupeRomPaths"></div><button class="path-add" data-action="addDupeRomPath">+ Add path</button></div>`,
     action: () => runDuplicateRomFinder(),
     onOpen: () => {
       const list = document.getElementById('dupeRomPaths');
@@ -35,8 +35,8 @@ function showDuplicateSelectionDialog(groups) {
   sub.className = 'confirm-subtitle destructive';
 
   let html = `<div class="dupe-select-bar">
-    <button class="dupe-select-btn" onclick="dupeSelectAll()">Select all duplicates</button>
-    <button class="dupe-select-btn" onclick="dupeDeselectAll()">Deselect all</button>
+    <button class="dupe-select-btn" data-action="dupeSelectAll">Select all duplicates</button>
+    <button class="dupe-select-btn" data-action="dupeDeselectAll">Deselect all</button>
     <span class="dupe-count" id="dupeCount">0 files selected</span>
   </div><div class="dupe-scroll">`;
 
@@ -48,7 +48,7 @@ function showDuplicateSelectionDialog(groups) {
       const id = `dupe_${fileIdx++}`;
       const filename = group.files[i].split('/').pop();
       html += `<div class="dupe-file">
-        <input type="checkbox" id="${id}" data-path="${group.files[i].replace(/"/g, '&quot;')}" onchange="dupeUpdateCount()" />
+        <input type="checkbox" id="${id}" data-path="${group.files[i].replace(/"/g, '&quot;')}" data-change="dupeUpdateCount" />
         <label for="${id}" title="${group.files[i]}">${filename}</label>
       </div>`;
     }

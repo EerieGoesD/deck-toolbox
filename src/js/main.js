@@ -64,7 +64,7 @@ async function showSudoSetup() {
       No password is set on this Steam Deck. You need one to run scripts that require system access.<br><br>
       <div class="confirm-form">
         <div class="confirm-field"><label>New password:</label><input type="password" id="setupPw1" /></div>
-        <div class="confirm-field"><label>Repeat password:</label><input type="password" id="setupPw2" onkeydown="if(event.key==='Enter')document.getElementById('confirmYes').click()" /></div>
+        <div class="confirm-field"><label>Repeat password:</label><input type="password" id="setupPw2" data-enter="confirmYes" /></div>
         <div id="setupError" style="font-family:var(--mono);font-size:12px;color:var(--danger);display:none;"></div>
       </div>`;
     yesBtn.textContent = 'Set Password';
@@ -159,13 +159,63 @@ async function cacheSudo() {
 // Tabs
 // ─────────────────────────────────────────────
 
-function switchTab(name) {
+function switchTab(name, target) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   document.querySelector(`.tab-content[data-tab="${name}"]`).classList.add('active');
-  event.currentTarget.classList.add('active');
+  if (target) target.classList.add('active');
   if (name === 'storage') loadStorageBars();
 }
+
+// ─────────────────────────────────────────────
+// Event delegation (CSP forbids inline on*= handlers)
+// ─────────────────────────────────────────────
+
+document.addEventListener('click', (e) => {
+  const target = e.target.closest('[data-action]');
+  if (!target) return;
+  const action = target.dataset.action;
+  const arg = target.dataset.arg;
+  switch (action) {
+    case 'switchTab':         switchTab(arg, target); break;
+    case 'confirmAction':     confirmAction(arg); break;
+    case 'openLink':          e.preventDefault(); openLink(arg); break;
+    case 'cacheSudo':         cacheSudo(); break;
+    case 'showSudoSetup':     showSudoSetup(); break;
+    case 'loadStorageBars':   loadStorageBars(); break;
+    case 'toggleTermExpand':  toggleTermExpand(); break;
+    case 'copyTerminal':      copyTerminal(); break;
+    case 'exportTerminal':    exportTerminal(); break;
+    case 'clearTerminal':     clearTerminal(); break;
+    case 'closeConfirm':      closeConfirm(); break;
+    case 'removePathItem':    target.closest('.path-item')?.remove(); break;
+    case 'addDupeRomPath':    addDupeRomPath(); break;
+    case 'addLostRomPath':    addLostRomPath(); break;
+    case 'addRomSortPath':    addRomSortPath(); break;
+    case 'dupeSelectAll':     if (typeof dupeSelectAll === 'function') dupeSelectAll(); break;
+    case 'dupeDeselectAll':   if (typeof dupeDeselectAll === 'function') dupeDeselectAll(); break;
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  const target = e.target.closest('[data-enter]');
+  if (!target) return;
+  const action = target.dataset.enter;
+  switch (action) {
+    case 'cacheSudo':     cacheSudo(); break;
+    case 'confirmYes':    document.getElementById('confirmYes').click(); break;
+  }
+});
+
+document.addEventListener('change', (e) => {
+  const target = e.target.closest('[data-change]');
+  if (!target) return;
+  const action = target.dataset.change;
+  switch (action) {
+    case 'dupeUpdateCount': if (typeof dupeUpdateCount === 'function') dupeUpdateCount(); break;
+  }
+});
 
 // ─────────────────────────────────────────────
 // Storage size bars
@@ -304,7 +354,7 @@ function confirmAction(key) {
 
   let bodyHtml = data.body;
   if (needsSudoInput) {
-    bodyHtml += `<div class="confirm-sudo-field"><label>Sudo password:</label><input type="password" id="confirmSudoInput" placeholder="Required for this script" onkeydown="if(event.key==='Enter')document.getElementById('confirmYes').click()" /></div>`;
+    bodyHtml += `<div class="confirm-sudo-field"><label>Sudo password:</label><input type="password" id="confirmSudoInput" placeholder="Required for this script" data-enter="confirmYes" /></div>`;
   }
   document.getElementById('confirmBody').innerHTML = bodyHtml;
 
@@ -365,7 +415,7 @@ function addPathToList(listId, value) {
   const list = document.getElementById(listId);
   const item = document.createElement('div');
   item.className = 'path-item';
-  item.innerHTML = `<input type="text" value="${value}" placeholder="/path/to/roms" /><button class="path-remove" onclick="this.parentElement.remove()">x</button>`;
+  item.innerHTML = `<input type="text" value="${value}" placeholder="/path/to/roms" /><button class="path-remove" data-action="removePathItem">x</button>`;
   list.appendChild(item);
 }
 

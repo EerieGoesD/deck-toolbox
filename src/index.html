@@ -15,15 +15,15 @@
     </div>
     <div class="header-right">
       <span>Made by</span>
-      <a href="#" onclick="openLink('https://eeriegoesd.com/')">EERIE</a>
+      <a href="#" data-action="openLink" data-arg="https://eeriegoesd.com/">EERIE</a>
       <span class="sep">|</span>
-      <a href="#" onclick="openLink('https://buymeacoffee.com/eeriegoesd')">Buy Me a Coffee</a>
+      <a href="#" data-action="openLink" data-arg="https://buymeacoffee.com/eeriegoesd">Buy Me a Coffee</a>
       <span class="sep">|</span>
-      <a href="#" onclick="openLink('https://github.com/EerieGoesD/deck-toolbox/discussions')">Feedback</a>
+      <a href="#" data-action="openLink" data-arg="https://github.com/EerieGoesD/deck-toolbox/discussions">Feedback</a>
       <span class="sep">|</span>
-      <a href="#" onclick="openLink('https://github.com/EerieGoesD/deck-toolbox/issues')">Report Issue</a>
+      <a href="#" data-action="openLink" data-arg="https://github.com/EerieGoesD/deck-toolbox/issues">Report Issue</a>
       <span class="sep">|</span>
-      <a href="#" onclick="openLink('https://github.com/EerieGoesD/deck-toolbox/issues/new?template=feature-request.md')">Suggest a Script</a>
+      <a href="#" data-action="openLink" data-arg="https://github.com/EerieGoesD/deck-toolbox/issues/new?template=feature-request.md">Suggest a Script</a>
     </div>
   </div>
   <div class="sudo-bar">
@@ -33,31 +33,31 @@
     <div class="sudo-divider"></div>
     <div class="sudo-section">
       <label>Password:</label>
-      <input type="password" id="sudoPassword" placeholder="Enter sudo password" onkeydown="if(event.key==='Enter')cacheSudo()" />
-      <button class="sudo-btn" onclick="cacheSudo()">Unlock</button>
+      <input type="password" id="sudoPassword" placeholder="Enter sudo password" data-enter="cacheSudo" />
+      <button class="sudo-btn" data-action="cacheSudo">Unlock</button>
     </div>
     <div class="sudo-divider"></div>
     <div class="sudo-section">
-      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="sudoSave" style="cursor:pointer;" /> Remember</label>
+      <label class="sudo-remember"><input type="checkbox" id="sudoSave" /> Remember</label>
     </div>
     <div class="sudo-divider"></div>
     <div class="sudo-section">
-      <button class="sudo-setup-link" onclick="showSudoSetup()">No password? Set one up</button>
+      <button class="sudo-setup-link" data-action="showSudoSetup">No password? Set one up</button>
     </div>
   </div>
-  <nav class="tabs" style="margin-top: 10px;">
-    <button class="tab active" onclick="switchTab('utilities')">Utilities</button>
-    <button class="tab" onclick="switchTab('resets')">Resets</button>
-    <button class="tab" onclick="switchTab('roms')">ROM Tools</button>
-    <button class="tab" onclick="switchTab('storage')">Storage</button>
-    <button class="tab" onclick="switchTab('decky')">Decky Loader</button>
-    <button class="tab" onclick="switchTab('recovery')">Recovery</button>
+  <nav class="tabs">
+    <button class="tab active" data-action="switchTab" data-arg="utilities">Utilities</button>
+    <button class="tab" data-action="switchTab" data-arg="resets">Resets</button>
+    <button class="tab" data-action="switchTab" data-arg="roms">ROM Tools</button>
+    <button class="tab" data-action="switchTab" data-arg="storage">Storage</button>
+    <button class="tab" data-action="switchTab" data-arg="decky">Decky Loader</button>
+    <button class="tab" data-action="switchTab" data-arg="recovery">Recovery</button>
   </nav>
 </header>
 
 <div class="app-body">
 
-  <!-- ═══ LEFT PANEL: Tools ═══ -->
+  <!-- LEFT PANEL: Tools -->
   <div class="panel-left">
 
     <div class="tab-content active" data-tab="utilities">
@@ -66,14 +66,14 @@
           <div class="tool-name">Generate .cue from .bin</div>
           <div class="tool-desc">Create matching .cue files for retro disc images.</div>
         </div>
-        <button class="tool-btn primary" id="btnCue" onclick="confirmAction('cue')">Run</button>
+        <button class="tool-btn primary" id="btnCue" data-action="confirmAction" data-arg="cue">Run</button>
       </div>
       <div class="tool-card">
         <div class="tool-info">
           <div class="tool-name">Weekly Maintenance</div>
           <div class="tool-desc">Flatpak updates, journal vacuum, TRIM, temp cleanup, disk checks.</div>
         </div>
-        <button class="tool-btn green" id="btnMaint" onclick="confirmAction('maintenance')">Run</button>
+        <button class="tool-btn green" id="btnMaint" data-action="confirmAction" data-arg="maintenance">Run</button>
       </div>
     </div>
 
@@ -84,7 +84,7 @@
           <div class="tool-desc">Backup and reset the Steam directory. Sign-in required after.</div>
           <div class="tool-tags"><span class="tool-tag fix-boot">Can fix boot loops</span></div>
         </div>
-        <button class="tool-btn warn" id="btnSteam" onclick="confirmAction('steam')">Run</button>
+        <button class="tool-btn warn" id="btnSteam" data-action="confirmAction" data-arg="steam">Run</button>
       </div>
       <div class="tool-card">
         <div class="tool-info">
@@ -92,7 +92,7 @@
           <div class="tool-desc">Clear Gamescope state/config. Fixes display glitches.</div>
           <div class="tool-tags"><span class="tool-tag fix-boot">Can fix boot loops</span><span class="tool-tag fix-visual">Can fix visual glitches</span></div>
         </div>
-        <button class="tool-btn warn" id="btnGamescope" onclick="confirmAction('gamescope')">Run</button>
+        <button class="tool-btn warn" id="btnGamescope" data-action="confirmAction" data-arg="gamescope">Run</button>
       </div>
     </div>
 
@@ -102,28 +102,28 @@
           <div class="tool-name">Duplicate ROM Finder</div>
           <div class="tool-desc">Find near-duplicate ROMs per console folder.</div>
         </div>
-        <button class="tool-btn primary" id="btnDupeRom" onclick="confirmAction('dupeRom')">Run</button>
+        <button class="tool-btn primary" id="btnDupeRom" data-action="confirmAction" data-arg="dupeRom">Run</button>
       </div>
       <div class="tool-card">
         <div class="tool-info">
           <div class="tool-name">Find Lost ROMs</div>
           <div class="tool-desc">Find ROM files outside standard EmuDeck directories.</div>
         </div>
-        <button class="tool-btn primary" id="btnLostRoms" onclick="confirmAction('lostRoms')">Run</button>
+        <button class="tool-btn primary" id="btnLostRoms" data-action="confirmAction" data-arg="lostRoms">Run</button>
       </div>
       <div class="tool-card">
         <div class="tool-info">
           <div class="tool-name">ROM Size Sorter</div>
           <div class="tool-desc">List all ROMs sorted by file size, largest first.</div>
         </div>
-        <button class="tool-btn primary" id="btnRomSort" onclick="confirmAction('romSort')">Run</button>
+        <button class="tool-btn primary" id="btnRomSort" data-action="confirmAction" data-arg="romSort">Run</button>
       </div>
       <div class="tool-card">
         <div class="tool-info">
           <div class="tool-name">Remove ROMs Metadata</div>
           <div class="tool-desc">Clear scraped artwork and gamelist.xml files.</div>
         </div>
-        <button class="tool-btn warn" id="btnRomMeta" onclick="confirmAction('romMetadata')">Run</button>
+        <button class="tool-btn warn" id="btnRomMeta" data-action="confirmAction" data-arg="romMetadata">Run</button>
       </div>
     </div>
 
@@ -131,7 +131,7 @@
       <div class="storage-overview" id="storageOverview">
         <div class="storage-overview-header">
           <span class="storage-overview-title">Size</span>
-          <button class="storage-refresh-btn" onclick="loadStorageBars()" title="Refresh">Refresh</button>
+          <button class="storage-refresh-btn" data-action="loadStorageBars" title="Refresh">Refresh</button>
         </div>
         <div class="storage-bars" id="storageBars">
           <div class="storage-bars-empty">Loading storage info...</div>
@@ -142,14 +142,14 @@
           <div class="tool-name">Large File Finder</div>
           <div class="tool-desc">Find the biggest files and folders on your Deck.</div>
         </div>
-        <button class="tool-btn primary" id="btnLargeFile" onclick="confirmAction('largeFile')">Run</button>
+        <button class="tool-btn primary" id="btnLargeFile" data-action="confirmAction" data-arg="largeFile">Run</button>
       </div>
       <div class="tool-card">
         <div class="tool-info">
           <div class="tool-name">Deck Declutter</div>
           <div class="tool-desc">Remove known clutter files, caches, and old installers.</div>
         </div>
-        <button class="tool-btn warn" id="btnDeclutter" onclick="confirmAction('declutter')">Run</button>
+        <button class="tool-btn warn" id="btnDeclutter" data-action="confirmAction" data-arg="declutter">Run</button>
       </div>
     </div>
 
@@ -159,14 +159,14 @@
           <div class="tool-name">Find Decky Leftovers</div>
           <div class="tool-desc">Search for leftover Decky Loader files after uninstall.</div>
         </div>
-        <button class="tool-btn primary" id="btnDeckyLeftovers" onclick="confirmAction('deckyLeftovers')">Run</button>
+        <button class="tool-btn primary" id="btnDeckyLeftovers" data-action="confirmAction" data-arg="deckyLeftovers">Run</button>
       </div>
       <div class="tool-card">
         <div class="tool-info">
           <div class="tool-name">Uninstall Decky Loader</div>
           <div class="tool-desc">Run official uninstall and clean up system files.</div>
         </div>
-        <button class="tool-btn danger" id="btnUninstallDecky" onclick="confirmAction('uninstallDecky')">Run</button>
+        <button class="tool-btn danger" id="btnUninstallDecky" data-action="confirmAction" data-arg="uninstallDecky">Run</button>
       </div>
     </div>
 
@@ -177,22 +177,22 @@
           <div class="tool-desc">Nuclear option for boot loops. Resets Steam and Gamescope.</div>
           <div class="tool-tags"><span class="tool-tag fix-boot">Can fix boot loops</span><span class="tool-tag fix-visual">Can fix visual glitches</span></div>
         </div>
-        <button class="tool-btn danger" id="btnRecovery" onclick="confirmAction('recovery')">Run</button>
+        <button class="tool-btn danger" id="btnRecovery" data-action="confirmAction" data-arg="recovery">Run</button>
       </div>
     </div>
 
   </div>
 
-  <!-- ═══ RIGHT PANEL: Terminal ═══ -->
+  <!-- RIGHT PANEL: Terminal -->
   <div class="panel-right">
     <div class="terminal-header">
-      <button class="terminal-action-btn" id="termExpand" onclick="toggleTermExpand()" title="Expand">&larr;</button>
+      <button class="terminal-action-btn" id="termExpand" data-action="toggleTermExpand" title="Expand">&larr;</button>
       <div class="terminal-title" id="termTitle">Terminal</div>
       <span class="terminal-status idle" id="termStatus">Idle</span>
       <div class="terminal-actions">
-        <button class="terminal-action-btn" onclick="copyTerminal()">Copy All</button>
-        <button class="terminal-action-btn" onclick="exportTerminal()">Export</button>
-        <button class="terminal-action-btn" onclick="clearTerminal()">Clear</button>
+        <button class="terminal-action-btn" data-action="copyTerminal">Copy All</button>
+        <button class="terminal-action-btn" data-action="exportTerminal">Export</button>
+        <button class="terminal-action-btn" data-action="clearTerminal">Clear</button>
       </div>
     </div>
     <div class="terminal-placeholder" id="termPlaceholder">Select a tool and click Run.<br>Output will appear here.</div>
@@ -201,7 +201,7 @@
 
 </div>
 
-<!-- ═══ Confirm Dialog ═══ -->
+<!-- Confirm Dialog -->
 <div class="confirm-overlay" id="confirmOverlay">
   <div class="confirm-box">
     <div class="confirm-header">
@@ -210,7 +210,7 @@
     </div>
     <div class="confirm-body" id="confirmBody"></div>
     <div class="confirm-actions">
-      <button class="tool-btn primary" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);" onclick="closeConfirm()">Cancel</button>
+      <button class="tool-btn primary confirm-cancel" data-action="closeConfirm">Cancel</button>
       <button class="tool-btn danger" id="confirmYes">Confirm</button>
     </div>
   </div>
