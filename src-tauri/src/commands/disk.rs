@@ -14,7 +14,13 @@ pub async fn get_disk_usage() -> Result<Vec<DiskInfo>, String> {
     let result = tauri::async_runtime::spawn_blocking(|| -> Vec<DiskInfo> {
         let mut disks: Vec<DiskInfo> = Vec::new();
 
-        if let Some(d) = read_disk("/home", "internal", "Internal Storage") {
+        let home = dirs::home_dir()
+            .map(|p| p.to_string_lossy().into_owned())
+            .unwrap_or_else(|| "/home".into());
+
+        if let Some(d) = read_disk(&home, "internal", "Internal Storage") {
+            disks.push(d);
+        } else if let Some(d) = read_disk("/home", "internal", "Internal Storage") {
             disks.push(d);
         } else if let Some(d) = read_disk("/", "internal", "Internal Storage") {
             disks.push(d);
