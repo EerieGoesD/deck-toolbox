@@ -183,7 +183,8 @@ document.addEventListener('click', (e) => {
     case 'cacheSudo':         cacheSudo(); break;
     case 'showSudoSetup':     showSudoSetup(); break;
     case 'loadStorageBars':   loadStorageBars(); break;
-    case 'toggleTermExpand':  toggleTermExpand(); break;
+    case 'termExpand':        termExpand(); break;
+    case 'termCollapse':      termCollapse(); break;
     case 'copyTerminal':      copyTerminal(); break;
     case 'exportTerminal':    exportTerminal(); break;
     case 'clearTerminal':     clearTerminal(); break;
@@ -271,7 +272,10 @@ async function loadStorageBars() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => loadStorageBars());
+document.addEventListener('DOMContentLoaded', () => {
+  setTermState('collapsed');
+  loadStorageBars();
+});
 
 // ─────────────────────────────────────────────
 // Terminal (right panel)
@@ -283,6 +287,7 @@ function openTerminal(label) {
   document.getElementById('termBody').style.display = '';
   document.getElementById('termPlaceholder').style.display = 'none';
   setTermStatus('running');
+  if (termState === 'collapsed') setTermState('half');
 }
 
 function appendTerminal(text) {
@@ -332,11 +337,23 @@ async function exportTerminal() {
   }
 }
 
-function toggleTermExpand() {
+let termState = 'collapsed';
+
+function setTermState(state) {
+  termState = state;
   const panel = document.querySelector('.panel-right');
-  const btn = document.getElementById('termExpand');
-  panel.classList.toggle('expanded');
-  btn.innerHTML = panel.classList.contains('expanded') ? '&rarr;' : '&larr;';
+  panel.classList.remove('state-collapsed', 'state-half', 'state-full');
+  panel.classList.add('state-' + state);
+}
+
+function termExpand() {
+  if (termState === 'collapsed') setTermState('half');
+  else if (termState === 'half') setTermState('full');
+}
+
+function termCollapse() {
+  if (termState === 'full') setTermState('half');
+  else if (termState === 'half') setTermState('collapsed');
 }
 
 // ─────────────────────────────────────────────

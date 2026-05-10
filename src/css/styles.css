@@ -668,8 +668,46 @@ header::after {
   pointer-events: none;
 }
 
-/* ── Terminal Expand ── */
-.panel-right.expanded { width: 100%; position: absolute; inset: 0; z-index: 10; }
+/* ── Terminal Panel States ── */
+.panel-right {
+  flex: 0 0 50%;
+  transition: flex-basis 0.25s ease;
+}
+
+.panel-right.state-collapsed {
+  flex: 0 0 44px;
+  min-width: 44px;
+}
+.panel-right.state-collapsed .terminal-title,
+.panel-right.state-collapsed .terminal-status,
+.panel-right.state-collapsed .terminal-actions,
+.panel-right.state-collapsed .terminal-body,
+.panel-right.state-collapsed .terminal-placeholder {
+  display: none;
+}
+.panel-right.state-collapsed .terminal-header {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 8px 4px;
+  gap: 4px;
+}
+
+.panel-right.state-half { flex: 0 0 50%; }
+
+.panel-right.state-full {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  flex: 1 0 100%;
+}
+
+.term-arrow-left,
+.term-arrow-right { display: none; }
+
+.panel-right.state-collapsed .term-arrow-left { display: inline-flex; }
+.panel-right.state-half .term-arrow-left,
+.panel-right.state-half .term-arrow-right { display: inline-flex; }
+.panel-right.state-full .term-arrow-right { display: inline-flex; }
 
 /* ── Duplicate Selection Dialog ── */
 .dupe-group {
