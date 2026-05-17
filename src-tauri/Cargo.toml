@@ -10,5 +10,10 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 dirs = "5"
 
+# Windows-only: SSH transport so deck-toolbox can run on a Windows PC and
+# execute the same scripts on the Steam Deck remotely.
+[target.'cfg(target_os = "windows")'.dependencies]
+ssh2 = "0.9"
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

@@ -203,6 +203,8 @@ document.addEventListener('click', (e) => {
     case 'addDupeRomPath':    addDupeRomPath(); break;
     case 'addLostRomPath':    addLostRomPath(); break;
     case 'addRomSortPath':    addRomSortPath(); break;
+    case 'addRomFinderPath':  addRomFinderPath(); break;
+    case 'addFixPathsRoot':   addFixPathsRoot(); break;
     case 'dupeSelectAll':     if (typeof dupeSelectAll === 'function') dupeSelectAll(); break;
     case 'dupeDeselectAll':   if (typeof dupeDeselectAll === 'function') dupeDeselectAll(); break;
   }
@@ -473,6 +475,10 @@ function addDupeRomPath() { addPathToList('dupeRomPaths', ''); }
 function addDupeRomPathValue(p) { addPathToList('dupeRomPaths', p); }
 function addLostRomPath() { addPathToList('lostRomPaths', ''); }
 function addLostRomPathValue(p) { addPathToList('lostRomPaths', p); }
+function addRomFinderPath() { addPathToList('romFinderPaths', ''); }
+function addRomFinderPathValue(p) { addPathToList('romFinderPaths', p); }
+function addFixPathsRoot() { addPathToList('fixPathsRoots', ''); }
+function addFixPathsRootValue(p) { addPathToList('fixPathsRoots', p); }
 function addRomSortPath() { addPathToList('romSortPaths', ''); }
 function addRomSortPathValue(p) { addPathToList('romSortPaths', p); }
 

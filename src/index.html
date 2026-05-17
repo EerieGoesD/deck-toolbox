@@ -125,6 +125,34 @@
         </div>
         <button class="tool-btn warn" id="btnRomMeta" data-action="confirmAction" data-arg="romMetadata">Run</button>
       </div>
+      <div class="tool-card">
+        <div class="tool-info">
+          <div class="tool-name">ROM Finder</div>
+          <div class="tool-desc">Search the ROM library for a filename, find where each match lives.</div>
+        </div>
+        <button class="tool-btn primary" id="btnRomFinder" data-action="confirmAction" data-arg="romFinder">Run</button>
+      </div>
+      <div class="tool-card">
+        <div class="tool-info">
+          <div class="tool-name">Cleanup Duplicate ROMs (cross-disk)</div>
+          <div class="tool-desc">Detect ROMs that are real on BOTH disks (from interrupted rebalance) and remove the internal copy.</div>
+        </div>
+        <button class="tool-btn warn" id="btnCleanupDupes" data-action="confirmAction" data-arg="cleanupDupes">Run</button>
+      </div>
+      <div class="tool-card">
+        <div class="tool-info">
+          <div class="tool-name">Fix ROM Paths</div>
+          <div class="tool-desc">Find ROMs sitting in the wrong system folder and move them to the correct one (same disk).</div>
+        </div>
+        <button class="tool-btn warn" id="btnFixRomPaths" data-action="confirmAction" data-arg="fixRomPaths">Run</button>
+      </div>
+      <div class="tool-card">
+        <div class="tool-info">
+          <div class="tool-name">Rebalance ROMs</div>
+          <div class="tool-desc">Balance disk usage between internal storage and SD card using a smart, symlink-aware planner.</div>
+        </div>
+        <button class="tool-btn warn" id="btnRebalanceRoms" data-action="confirmAction" data-arg="rebalanceRoms">Run</button>
+      </div>
     </div>
 
     <div class="tab-content" data-tab="storage">
@@ -230,6 +258,10 @@
 <script src="js/jobs/rom_tools/find_lost_roms.js"></script>
 <script src="js/jobs/rom_tools/rom_size_sorter.js"></script>
 <script src="js/jobs/rom_tools/remove_roms_metadata.js"></script>
+<script src="js/jobs/rom_tools/rom_finder.js"></script>
+<script src="js/jobs/rom_tools/cleanup_dupes.js"></script>
+<script src="js/jobs/rom_tools/fix_rom_paths.js"></script>
+<script src="js/jobs/rom_tools/rebalance_roms.js"></script>
 <!-- Storage -->
 <script src="js/jobs/storage/large_file_finder.js"></script>
 <script src="js/jobs/storage/deck_declutter.js"></script>

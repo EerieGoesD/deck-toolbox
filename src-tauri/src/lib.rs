@@ -3,10 +3,20 @@ mod commands;
 use std::sync::Mutex;
 
 pub fn run() {
+    #[cfg(target_os = "windows")]
+    let deck_connection = commands::transport::DeckConnection(Mutex::new(None));
+    #[cfg(not(target_os = "windows"))]
+    let deck_connection = commands::transport::DeckConnection(Mutex::new(()));
+
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .manage(commands::scripts::SudoPassword(Mutex::new(None)))
+        .manage(deck_connection)
         .invoke_handler(tauri::generate_handler![
+            commands::transport::get_platform,
+            commands::transport::connect_to_deck,
+            commands::transport::disconnect_deck,
+            commands::transport::is_deck_connected,
             commands::scripts::cache_sudo,
             commands::scripts::save_sudo_password,
             commands::scripts::load_sudo_password,
@@ -29,6 +39,10 @@ pub fn run() {
             commands::scripts::rom_size_sorter,
             commands::scripts::deck_declutter,
             commands::scripts::uninstall_decky,
+            commands::scripts::rom_finder,
+            commands::scripts::cleanup_dupes,
+            commands::scripts::fix_rom_paths,
+            commands::scripts::rebalance_roms,
             commands::backups::delete_steam_backups,
             commands::disk::get_disk_usage,
         ])

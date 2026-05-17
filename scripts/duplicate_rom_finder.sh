@@ -31,7 +31,10 @@ for console_dir in "$ROMS_DIR"/*/; do
 
   while IFS= read -r filepath; do
     filename="${filepath##*/}"
-    norm=$(echo "$filename" | tr '[:upper:]' '[:lower:]' | sed "s/[^a-z0-9]//g")
+    # Strip the extension first so different compression formats of the same game
+    # (e.g. Mario.7z vs Mario.zip) normalize to the same key and collide.
+    stem="${filename%.*}"
+    norm=$(echo "$stem" | tr '[:upper:]' '[:lower:]' | sed "s/[^a-z0-9]//g")
     seen["$norm"]+="$filepath"$'\n'
   done < <(find "$console_dir" -type f \( -name "*.7z" -o -name "*.zip" -o -name "*.chd" -o -name "*.iso" -o -name "*.bin" -o -name "*.cue" \))
 

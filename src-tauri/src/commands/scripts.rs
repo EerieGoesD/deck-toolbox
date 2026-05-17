@@ -42,6 +42,7 @@ fn scripts_dir(app: &AppHandle) -> std::path::PathBuf {
         .join("scripts")
 }
 
+#[cfg(target_os = "linux")]
 fn run_script_internal(
     app: &AppHandle,
     script_name: &str,
@@ -124,6 +125,85 @@ bash "$1" "${@:2}" </dev/null
         stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
         stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
     })
+}
+
+/// Windows path: connect to the Steam Deck over SSH, upload the bundled script to
+/// ~/.cache/deck-toolbox/scripts/ on the Deck, then exec it via bash. Captures stdout,
+/// stderr and the exit code the same way the Linux path does so the JS frontend does
+/// not need to care which build it is.
+#[cfg(target_os = "windows")]
+fn run_script_internal(
+    app: &AppHandle,
+    script_name: &str,
+    args: &[&str],
+) -> Result<ScriptResult, String> {
+    use crate::commands::transport::{create_session, current_credentials, DeckConnection};
+    use std::io::{Read as IoRead, Write as IoWrite};
+
+    let creds = current_credentials(&app.state::<DeckConnection>())?;
+
+    // Read the script content from the bundled resources on the host.
+    let bundled_path = scripts_dir(app).join(script_name);
+    let script_bytes = std::fs::read(&bundled_path)
+        .map_err(|e| format!("read bundled script {}: {}", script_name, e))?;
+
+    let session = create_session(&creds.ip, &creds.password)?;
+
+    // Make sure ~/.cache/deck-toolbox/scripts/ exists on the Deck.
+    let remote_dir = "/home/deck/.cache/deck-toolbox/scripts";
+    {
+        let mut ch = session
+            .channel_session()
+            .map_err(|e| format!("ssh channel (mkdir): {}", e))?;
+        ch.exec(&format!("mkdir -p '{}'", remote_dir))
+            .map_err(|e| format!("mkdir exec: {}", e))?;
+        let mut buf = String::new();
+        let _ = ch.read_to_string(&mut buf);
+        let _ = ch.wait_close();
+    }
+
+    // Upload the script via SCP (simpler than SFTP for one file).
+    let remote_path = format!("{}/{}", remote_dir, script_name);
+    {
+        let mut remote = session
+            .scp_send(
+                std::path::Path::new(&remote_path),
+                0o755,
+                script_bytes.len() as u64,
+                None,
+            )
+            .map_err(|e| format!("scp_send {}: {}", remote_path, e))?;
+        remote
+            .write_all(&script_bytes)
+            .map_err(|e| format!("scp write: {}", e))?;
+        remote.send_eof().ok();
+        remote.wait_eof().ok();
+        remote.close().ok();
+        remote.wait_close().ok();
+    }
+
+    // Quote each script argument for bash (single-quote, escape any embedded ').
+    fn q(s: &str) -> String {
+        format!("'{}'", s.replace('\'', "'\\''"))
+    }
+    let quoted_args: Vec<String> = args.iter().map(|a| q(a)).collect();
+    let cmd = format!("bash {} {}", q(&remote_path), quoted_args.join(" "));
+
+    let mut channel = session
+        .channel_session()
+        .map_err(|e| format!("ssh channel (exec): {}", e))?;
+    channel.exec(&cmd).map_err(|e| format!("ssh exec: {}", e))?;
+
+    let mut stdout = String::new();
+    channel
+        .read_to_string(&mut stdout)
+        .map_err(|e| format!("read stdout: {}", e))?;
+    let mut stderr = String::new();
+    let _ = channel.stderr().read_to_string(&mut stderr);
+    channel.wait_close().ok();
+    let code = channel.exit_status().unwrap_or(-1);
+
+    Ok(ScriptResult { code, stdout, stderr })
 }
 
 #[tauri::command]
@@ -515,4 +595,38 @@ pub async fn deck_declutter(app: AppHandle) -> Result<ScriptResult, String> {
 pub async fn uninstall_decky(app: AppHandle) -> Result<ScriptResult, String> {
     tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "uninstall_decky.sh", &[]))
         .await.map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn rom_finder(app: AppHandle, search: String, paths: Vec<String>) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let mut args: Vec<&str> = vec![search.as_str()];
+        let path_refs: Vec<&str> = paths.iter().map(|s| s.as_str()).collect();
+        args.extend(path_refs.iter().copied());
+        run_script_internal(&app, "rom_finder.sh", &args)
+    }).await.map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn cleanup_dupes(app: AppHandle, mode: String, internal_root: String, sd_root: String) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        run_script_internal(&app, "cleanup_dupes.sh", &[mode.as_str(), internal_root.as_str(), sd_root.as_str()])
+    }).await.map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn fix_rom_paths(app: AppHandle, mode: String, paths: Vec<String>) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let mut args: Vec<&str> = vec![mode.as_str()];
+        let path_refs: Vec<&str> = paths.iter().map(|s| s.as_str()).collect();
+        args.extend(path_refs.iter().copied());
+        run_script_internal(&app, "fix_rom_paths.sh", &args)
+    }).await.map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn rebalance_roms(app: AppHandle, mode: String, internal_root: String, sd_root: String, strategy: String, threshold: String) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        run_script_internal(&app, "rebalance_roms.sh", &[mode.as_str(), internal_root.as_str(), sd_root.as_str(), strategy.as_str(), threshold.as_str()])
+    }).await.map_err(|e| e.to_string())?
 }
