@@ -52,7 +52,7 @@ async function showSudoSetup() {
     document.getElementById('confirmBody').innerHTML = `
       Your Steam Deck already has a sudo password configured.<br><br>
       Enter it in the password field above and click <strong>Unlock</strong> to authenticate.<br><br>
-      <span style="font-family:var(--mono);font-size:11px;color:var(--muted);">If you forgot your password, open Konsole and run: <code>passwd</code></span>`;
+      <span style="font-size:12px;color:var(--muted);">If you forgot your password, open Konsole and run: <code>passwd</code></span>`;
     yesBtn.textContent = 'OK';
     yesBtn.className = 'tool-btn primary';
     yesBtn.style.display = '';
@@ -65,7 +65,7 @@ async function showSudoSetup() {
       <div class="confirm-form">
         <div class="confirm-field"><label>New password:</label><input type="password" id="setupPw1" /></div>
         <div class="confirm-field"><label>Repeat password:</label><input type="password" id="setupPw2" data-enter="confirmYes" /></div>
-        <div id="setupError" style="font-family:var(--mono);font-size:12px;color:var(--danger);display:none;"></div>
+        <div id="setupError" style="font-size:13px;color:var(--danger-text);display:none;"></div>
       </div>`;
     yesBtn.textContent = 'Set Password';
     yesBtn.className = 'tool-btn primary';
@@ -74,7 +74,7 @@ async function showSudoSetup() {
       const pw1 = document.getElementById('setupPw1').value;
       const pw2 = document.getElementById('setupPw2').value;
       const errEl = document.getElementById('setupError');
-      errEl.style.color = 'var(--danger)';
+      errEl.style.color = 'var(--danger-text)';
       if (!pw1) { errEl.textContent = 'Password cannot be empty.'; errEl.style.display = ''; return; }
       if (pw1 !== pw2) { errEl.textContent = 'Passwords do not match.'; errEl.style.display = ''; return; }
       if (pw1.length < 4) { errEl.textContent = 'Password must be at least 4 characters.'; errEl.style.display = ''; return; }
@@ -85,15 +85,15 @@ async function showSudoSetup() {
         const result = await invoke('set_user_password', { newPassword: pw1 });
         if (result.code === 0) {
           errEl.textContent = 'Password set! You can now use it to authenticate.';
-          errEl.style.color = 'var(--success)';
+          errEl.style.color = 'var(--text)';
           setTimeout(() => closeConfirm(), 2000);
         } else {
           errEl.textContent = 'Failed. Open Konsole and run: passwd';
-          errEl.style.color = 'var(--danger)';
+          errEl.style.color = 'var(--danger-text)';
         }
       } catch (err) {
         errEl.textContent = 'Error. Open Konsole and run: passwd';
-        errEl.style.color = 'var(--danger)';
+        errEl.style.color = 'var(--danger-text)';
       }
     };
     setTimeout(() => document.getElementById('setupPw1')?.focus(), 100);
@@ -396,7 +396,7 @@ function confirmAction(key) {
 
   const yesBtn = document.getElementById('confirmYes');
   yesBtn.textContent = data.severity === 'safe' ? 'Run' : 'Confirm';
-  yesBtn.className = 'tool-btn ' + (data.severity === 'destructive' ? 'danger' : data.severity === 'caution' ? 'warn' : 'primary');
+  yesBtn.className = 'tool-btn ' + (data.severity === 'destructive' ? 'danger' : 'primary');
 
   yesBtn.onclick = async () => {
     if (needsSudoInput) {
@@ -463,7 +463,7 @@ function addPathToList(listId, value) {
   const list = document.getElementById(listId);
   const item = document.createElement('div');
   item.className = 'path-item';
-  item.innerHTML = `<input type="text" value="${value}" placeholder="/path/to/roms" /><button class="path-remove" data-action="removePathItem">x</button>`;
+  item.innerHTML = `<input type="text" value="${value}" placeholder="/path/to/roms" /><button class="path-remove" data-action="removePathItem" title="Remove" aria-label="Remove"><svg width="10" height="10" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button>`;
   list.appendChild(item);
 }
 

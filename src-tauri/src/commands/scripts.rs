@@ -82,6 +82,7 @@ fn run_script_internal(
     // gets stdin closed so it cannot consume the password line.
     let wrapper_with_sudo = r#"
 read -r DT_SUDO_PASS
+export DT_SUDO_PASS
 if ! printf '%s\n' "$DT_SUDO_PASS" | command sudo -S -v 2>/dev/null; then
     echo "Sudo authentication failed - check the password set via Unlock" >&2
     exit 64

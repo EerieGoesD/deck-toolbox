@@ -5,7 +5,16 @@
 
 echo "=== Uninstalling Decky Loader ==="
 echo ""
-curl -L https://github.com/SteamDeckHomebrew/decky-installer/releases/latest/download/uninstall.sh | sh
+# Run the official script from a file through our sudo. Piping it into sh
+# makes it re-run itself with the real sudo, which has no way to get the password.
+UNINSTALLER="$(mktemp)"
+if ! curl -fL https://github.com/SteamDeckHomebrew/decky-installer/releases/latest/download/uninstall.sh -o "$UNINSTALLER"; then
+  echo "Could not download the Decky uninstall script." >&2
+  rm -f "$UNINSTALLER"
+  exit 1
+fi
+sudo sh "$UNINSTALLER"
+rm -f "$UNINSTALLER"
 
 echo ""
 echo "=== Cleaning up leftovers ==="
