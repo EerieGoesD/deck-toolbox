@@ -199,6 +199,7 @@ document.addEventListener('click', (e) => {
     case 'exportTerminal':    exportTerminal(); break;
     case 'clearTerminal':     clearTerminal(); break;
     case 'closeConfirm':      closeConfirm(); break;
+    case 'answerNo':          settleAnswer(false); break;
     case 'removePathItem':    target.closest('.path-item')?.remove(); break;
     case 'addDupeRomPath':    addDupeRomPath(); break;
     case 'addLostRomPath':    addLostRomPath(); break;
@@ -449,11 +450,52 @@ function confirmAction(key) {
 function closeConfirm() {
   document.getElementById('confirmOverlay').classList.remove('open');
   document.querySelector('.confirm-box').classList.remove('wide');
+  if (pendingAnswer) settleAnswer(null);
 }
 
+// While true, clicking outside the dialog does not close it
+let confirmLocked = false;
+
 document.getElementById('confirmOverlay').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeConfirm();
+  if (e.target === e.currentTarget && !confirmLocked) closeConfirm();
 });
+
+// ─────────────────────────────────────────────
+// Yes / No question (used by the diagnostics tests)
+// Resolves true, false, or null if the dialog was dismissed
+// ─────────────────────────────────────────────
+
+let pendingAnswer = null;
+
+function askYesNo(title, bodyHtml) {
+  return new Promise(resolve => {
+    pendingAnswer = resolve;
+    document.getElementById('confirmTitle').textContent = title;
+    const sub = document.getElementById('confirmSubtitle');
+    sub.textContent = '';
+    sub.className = 'confirm-subtitle';
+    document.getElementById('confirmBody').innerHTML = bodyHtml;
+    const no = document.querySelector('.confirm-cancel');
+    no.textContent = 'No';
+    no.dataset.action = 'answerNo';
+    const yes = document.getElementById('confirmYes');
+    yes.textContent = 'Yes';
+    yes.className = 'tool-btn primary';
+    yes.style.display = '';
+    yes.onclick = () => settleAnswer(true);
+    document.getElementById('confirmOverlay').classList.add('open');
+  });
+}
+
+function settleAnswer(value) {
+  const resolve = pendingAnswer;
+  pendingAnswer = null;
+  const no = document.querySelector('.confirm-cancel');
+  no.textContent = 'Cancel';
+  no.dataset.action = 'closeConfirm';
+  closeConfirm();
+  if (resolve) resolve(value);
+}
 
 // ─────────────────────────────────────────────
 // Path list helpers

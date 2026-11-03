@@ -304,9 +304,13 @@ header {
 .terminal-status.done { color: var(--text); }
 .terminal-status.error { color: var(--danger-text); }
 
+/* Equal columns: every button is as wide as the longest label */
 .terminal-actions {
-  display: flex;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 6px;
+  flex-shrink: 0;
 }
 
 .terminal-action-btn {
@@ -322,7 +326,7 @@ header {
   align-items: center;
   justify-content: center;
 }
-.terminal-actions .terminal-action-btn { width: 72px; }
+.terminal-actions .terminal-action-btn { white-space: nowrap; padding: 0 12px; }
 .terminal-action-btn:hover { color: var(--text); }
 .terminal-action-btn svg { display: block; }
 
@@ -698,4 +702,47 @@ header {
 .dupe-count {
   font-size: 13px;
   color: var(--muted);
+}
+
+/* ── Diagnostics ── */
+.screen-test {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  cursor: none;
+}
+
+.controls-grid { display: flex; flex-direction: column; gap: 8px; }
+
+.controls-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controls-group-label {
+  width: 120px;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.control-chip {
+  width: 64px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.control-chip.on {
+  color: var(--on-fill);
+  background: var(--accent);
+  border-color: var(--accent);
 }

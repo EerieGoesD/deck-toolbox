@@ -11,7 +11,7 @@ pub struct SudoPassword(pub Mutex<Option<String>>);
 /// Uses `flatpak-spawn --host` (allowed by --talk-name=org.freedesktop.Flatpak)
 /// so commands like sudo, bash, passwd find a real /etc/passwd, /etc/sudoers,
 /// and the user's actual SteamOS environment.
-fn host_command(program: &str) -> Command {
+pub(crate) fn host_command(program: &str) -> Command {
     if std::path::Path::new("/.flatpak-info").exists() {
         let mut cmd = Command::new("flatpak-spawn");
         cmd.arg("--host").arg(program);
@@ -42,18 +42,17 @@ fn scripts_dir(app: &AppHandle) -> std::path::PathBuf {
         .join("scripts")
 }
 
+/// Copy a bundled script out of the Flatpak overlay (which the host bash cannot
+/// read) into the user's cache dir and return that path. ~/.cache/... is
+/// bind-mounted into the sandbox, so both sides see the same file.
 #[cfg(target_os = "linux")]
-fn run_script_internal(
+pub(crate) fn prepare_host_script(
     app: &AppHandle,
     script_name: &str,
-    args: &[&str],
-) -> Result<ScriptResult, String> {
+) -> Result<std::path::PathBuf, String> {
     let bundled_path = scripts_dir(app).join(script_name);
     let home = dirs::home_dir().ok_or("Cannot find home directory")?;
 
-    // Copy the script out of the Flatpak overlay (which the host bash cannot
-    // read) into the user's cache dir. ~/.cache/... is bind-mounted into the
-    // sandbox, so both sides see the same file.
     let cache_dir = home.join(".cache").join("deck-toolbox").join("scripts");
     std::fs::create_dir_all(&cache_dir).map_err(|e| format!("create cache dir: {}", e))?;
     let host_path = cache_dir.join(script_name);
@@ -65,6 +64,17 @@ fn run_script_internal(
         use std::os::unix::fs::PermissionsExt;
         let _ = std::fs::set_permissions(&host_path, std::fs::Permissions::from_mode(0o755));
     }
+
+    Ok(host_path)
+}
+
+#[cfg(target_os = "linux")]
+fn run_script_internal(
+    app: &AppHandle,
+    script_name: &str,
+    args: &[&str],
+) -> Result<ScriptResult, String> {
+    let host_path = prepare_host_script(app, script_name)?;
 
     let sudo_password = app
         .state::<SudoPassword>()
@@ -623,6 +633,18 @@ pub async fn fix_rom_paths(app: AppHandle, mode: String, paths: Vec<String>) -> 
         args.extend(path_refs.iter().copied());
         run_script_internal(&app, "fix_rom_paths.sh", &args)
     }).await.map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn health_check(app: AppHandle) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "diagnostics.sh", &[]))
+        .await.map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn speaker_test(app: AppHandle, side: String) -> Result<ScriptResult, String> {
+    tauri::async_runtime::spawn_blocking(move || run_script_internal(&app, "speaker_test.sh", &[side.as_str()]))
+        .await.map_err(|e| e.to_string())?
 }
 
 #[tauri::command]

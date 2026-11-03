@@ -12,6 +12,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .manage(commands::scripts::SudoPassword(Mutex::new(None)))
         .manage(deck_connection)
+        .manage(commands::controls::ControlsTest(Mutex::new(None)))
         .invoke_handler(tauri::generate_handler![
             commands::transport::get_platform,
             commands::transport::connect_to_deck,
@@ -43,6 +44,10 @@ pub fn run() {
             commands::scripts::cleanup_dupes,
             commands::scripts::fix_rom_paths,
             commands::scripts::rebalance_roms,
+            commands::scripts::health_check,
+            commands::scripts::speaker_test,
+            commands::controls::start_controls_test,
+            commands::controls::stop_controls_test,
             commands::backups::delete_steam_backups,
             commands::disk::get_disk_usage,
         ])
