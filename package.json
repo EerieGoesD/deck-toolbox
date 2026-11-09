@@ -8,5 +8,5 @@
     "build": "cargo tauri build"
   },
   "author": "EERIE",
-  "license": "MIT"
+  "license": "UNLICENSED"
 }
