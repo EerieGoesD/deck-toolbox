@@ -20,13 +20,17 @@ echo ""
 echo "=== Cleaning up leftovers ==="
 echo ""
 
+# Everything Decky Loader installs, including its plugins and their settings.
+# find_decky_leftovers.sh checks this same list, so keep the two in sync.
 TARGETS=(
-  "/home/deck/homebrew/services"
-  "/home/deck/homebrew/logs"
-  "/home/deck/homebrew/settings/loader.json"
-  "/home/deck/homebrew/plugins/decky-plugin-template"
-  "/home/deck/homebrew/data/decky-plugin-template"
-  "/home/deck/homebrew/settings/decky-plugin-template"
+  "/home/deck/homebrew"
+  "/home/deck/.local/share/decky"
+  "/home/deck/.config/decky"
+  "/home/deck/.config/systemd/user/plugin_loader.service"
+  "/home/deck/.steam/steam/.cef-enable-remote-debugging"
+  "/home/deck/.var/app/com.valvesoftware.Steam/data/Steam/.cef-enable-remote-debugging"
+  "/etc/systemd/system/plugin_loader.service"
+  "/etc/systemd/system/multi-user.target.wants/plugin_loader.service"
   "/etc/previous/systemd/system/plugin_loader.service"
   "/etc/previous/systemd/system/multi-user.target.wants/plugin_loader.service"
 )

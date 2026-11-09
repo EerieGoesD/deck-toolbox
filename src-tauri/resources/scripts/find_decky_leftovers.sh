@@ -21,14 +21,30 @@ print_result() {
   ((found++))
 }
 
-# Known Decky paths
+# Everything Decky Loader installs. uninstall_decky.sh deletes this same list,
+# so keep the two in sync.
 KNOWN_PATHS=(
   "/home/deck/homebrew"
   "/home/deck/.local/share/decky"
   "/home/deck/.config/decky"
+  "/home/deck/.config/systemd/user/plugin_loader.service"
   "/home/deck/.steam/steam/.cef-enable-remote-debugging"
+  "/home/deck/.var/app/com.valvesoftware.Steam/data/Steam/.cef-enable-remote-debugging"
   "/etc/systemd/system/plugin_loader.service"
   "/etc/systemd/system/multi-user.target.wants/plugin_loader.service"
+  "/etc/previous/systemd/system/plugin_loader.service"
+  "/etc/previous/systemd/system/multi-user.target.wants/plugin_loader.service"
+)
+
+# Files with "decky" in the name that belong to other software, not Decky
+NOT_DECKY=(
+  "/home/deck/.config/EmuDeck"
+  "/home/deck/Emulation"
+  "/home/deck/.cache/deck-toolbox"
+  "/home/deck/.var/app/io.github.EerieGoesD.DeckToolbox"
+  "/home/deck/.local/share/flatpak/app/io.github.EerieGoesD.DeckToolbox"
+  "/home/deck/Documents/GitHub/deck-toolbox"
+  "/home/deck/Documents/GitHub/steam-deck-utility-scripts"
 )
 
 for path in "${KNOWN_PATHS[@]}"; do
@@ -37,25 +53,17 @@ for path in "${KNOWN_PATHS[@]}"; do
   fi
 done
 
-# Search for any remaining files/dirs with "decky" in the name
-while IFS= read -r file; do
-  print_result "$file"
-done < <(find /home/deck /tmp /etc -iname "*decky*" \
-  -not -path "/home/deck/Documents/GitHub/steam-deck-utility-scripts/*" \
-  -not -path "/home/deck/homebrew/*" \
-  -not -path "/home/deck/homebrew" \
-  -not -path "/home/deck/.local/share/decky/*" \
-  -not -path "/home/deck/.local/share/decky" \
-  -not -path "/home/deck/.config/decky/*" \
-  -not -path "/home/deck/.config/decky" \
-  2>/dev/null)
+# Anything else named after Decky or its service, skipping the paths above
+prune=()
+for path in "${KNOWN_PATHS[@]}" "${NOT_DECKY[@]}"; do
+  prune+=(-path "$path" -o)
+done
+unset 'prune[${#prune[@]}-1]'
 
-# Search for plugin_loader references
 while IFS= read -r file; do
   print_result "$file"
-done < <(find /home/deck /etc /tmp -iname "*plugin_loader*" \
-  -not -path "/home/deck/homebrew/*" \
-  2>/dev/null)
+done < <(find /home/deck /etc /tmp \( "${prune[@]}" \) -prune -o \
+  \( -iname "*decky*" -o -iname "*plugin_loader*" \) -print 2>/dev/null)
 
 if (( found == 0 )); then
   echo "No Decky Loader leftovers found. Clean uninstall!"
