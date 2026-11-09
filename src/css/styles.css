@@ -17,6 +17,7 @@
   --danger-h: #b93030;
   --danger-text: #f26b6b;
   --on-fill: #ffffff;
+  --switch-off: rgba(120, 120, 128, 0.36);
   --radius: 6px;
   --sans: "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   /* Only for script output, so its columns line up */
@@ -746,3 +747,90 @@ header {
   background: var(--accent);
   border-color: var(--accent);
 }
+
+/* ── Footer: usage line ── */
+.footer {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 7px 24px;
+  border-top: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.brand-sub {
+  min-width: 0;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Settings ── */
+.round-btn {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.round-btn:hover { background: var(--surface2); }
+.round-btn svg { display: block; }
+
+.settings-group-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.settings-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.settings-label { font-size: 14px; color: var(--text); }
+.settings-desc { font-size: 13px; line-height: 1.4; color: var(--muted); }
+
+.switch {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 28px;
+  border-radius: 14px;
+  background: var(--switch-off);
+  cursor: pointer;
+  transition: background-color 0.25s ease;
+}
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--on-fill);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.22);
+  transition: transform 0.3s ease;
+}
+.switch:checked { background: var(--accent); }
+.switch:checked::after { transform: translateX(18px); }

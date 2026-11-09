@@ -15,5 +15,9 @@ dirs = "5"
 [target.'cfg(target_os = "windows")'.dependencies]
 ssh2 = "0.9"
 
+# Linux-only: reads the app's own CPU time for the usage line.
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = "0.2"
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

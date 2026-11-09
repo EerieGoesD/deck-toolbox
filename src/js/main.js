@@ -121,6 +121,7 @@ async function cacheSudo() {
       sudoAuthenticated = true;
       if (document.getElementById('sudoSave').checked) {
         await invoke('save_sudo_password', { password });
+        scheduleCacheSize();
       }
       input.value = '';
       input.disabled = true;
@@ -200,6 +201,7 @@ document.addEventListener('click', (e) => {
     case 'clearTerminal':     clearTerminal(); break;
     case 'closeConfirm':      closeConfirm(); break;
     case 'answerNo':          settleAnswer(false); break;
+    case 'showSettings':      showSettings(); break;
     case 'removePathItem':    target.closest('.path-item')?.remove(); break;
     case 'addDupeRomPath':    addDupeRomPath(); break;
     case 'addLostRomPath':    addLostRomPath(); break;
@@ -291,6 +293,104 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ─────────────────────────────────────────────
+// Usage line at the left of the footer: version | CPU | RAM | Cache
+// ─────────────────────────────────────────────
+
+let appVersionStr = '';
+let cacheSizeStr = '';
+let cpuStr = '';
+let ramStr = '';
+let metricsOn = true;
+try { metricsOn = localStorage.getItem('metricsOn') !== '0'; } catch (e) {}
+let usageTimer = null;
+
+function updateBrandSub() {
+  const parts = [];
+  if (appVersionStr) parts.push('v' + appVersionStr);
+  // CPU, RAM and cache show and hide together, on the one switch.
+  if (metricsOn) {
+    if (cpuStr && cpuStr !== 'n/a') parts.push('CPU: ' + cpuStr);
+    if (ramStr && ramStr !== 'n/a') parts.push('RAM: ' + ramStr);
+    if (cacheSizeStr) parts.push('Cache: ' + cacheSizeStr);
+  }
+  document.getElementById('brandSub').textContent = parts.join(' | ');
+}
+
+function refreshUsage() {
+  invoke('usage')
+    .then(([cpu, ram]) => { cpuStr = cpu; ramStr = ram; updateBrandSub(); })
+    .catch(() => {});
+}
+
+function formatCacheBytes(n) {
+  if (!n) return '0 KB';
+  if (n < 1024 * 1024) return Math.max(1, Math.round(n / 1024)) + ' KB';
+  return (n / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function refreshCacheSize() {
+  invoke('cache_size')
+    .then((n) => { cacheSizeStr = formatCacheBytes(n); updateBrandSub(); })
+    .catch(() => {});
+}
+
+// Coalesce a burst of writes into one recount.
+let cacheTimer = null;
+function scheduleCacheSize() {
+  clearTimeout(cacheTimer);
+  cacheTimer = setTimeout(() => { if (metricsOn) refreshCacheSize(); }, 50);
+}
+
+function applyMetrics(on) {
+  metricsOn = on;
+  try { localStorage.setItem('metricsOn', on ? '1' : '0'); } catch (e) {}
+  clearInterval(usageTimer);
+  usageTimer = null;
+  if (!on) { cpuStr = ''; ramStr = ''; cacheSizeStr = ''; }
+  updateBrandSub();
+  if (on) {
+    refreshUsage();
+    refreshCacheSize();
+    usageTimer = setInterval(refreshUsage, 2000);
+  }
+}
+
+invoke('app_version')
+  .then((v) => { appVersionStr = v; updateBrandSub(); })
+  .catch(() => {});
+applyMetrics(metricsOn);
+
+// ─────────────────────────────────────────────
+// Settings
+// ─────────────────────────────────────────────
+
+function showSettings() {
+  document.getElementById('confirmTitle').textContent = 'Settings';
+  const sub = document.getElementById('confirmSubtitle');
+  sub.textContent = '';
+  sub.className = 'confirm-subtitle';
+  document.getElementById('confirmBody').innerHTML = `
+    <div class="settings-group-title">Display</div>
+    <label class="settings-row">
+      <span class="settings-text">
+        <span class="settings-label">Show app usage</span>
+        <span class="settings-desc">How much this app is using, shown at the bottom of the window.</span>
+      </span>
+      <input type="checkbox" class="switch" id="metricsSwitch" />
+    </label>`;
+  const sw = document.getElementById('metricsSwitch');
+  sw.checked = metricsOn;
+  sw.addEventListener('change', () => applyMetrics(sw.checked));
+  document.querySelector('.confirm-cancel').style.display = 'none';
+  const done = document.getElementById('confirmYes');
+  done.textContent = 'Done';
+  done.className = 'tool-btn primary';
+  done.style.display = '';
+  done.onclick = () => closeConfirm();
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+
+// ─────────────────────────────────────────────
 // Terminal (right panel)
 // ─────────────────────────────────────────────
 
@@ -329,6 +429,8 @@ function setTermStatus(type) {
   el.className = 'terminal-status ' + type;
   const labels = { idle: 'Idle', running: 'Running...', done: 'Done', error: 'Error' };
   el.textContent = labels[type] || type;
+  // A finished script has copied itself into ~/.cache/deck-toolbox
+  if (type === 'done' || type === 'error') scheduleCacheSize();
 }
 
 function clearTerminal() {
@@ -426,6 +528,7 @@ function confirmAction(key) {
         document.getElementById('sudoStatus').textContent = 'Authenticated';
         if (document.getElementById('sudoSave').checked) {
           await invoke('save_sudo_password', { password: pw });
+          scheduleCacheSize();
         }
       } catch (err) {
         const msg = err?.message || String(err);
@@ -450,6 +553,7 @@ function confirmAction(key) {
 function closeConfirm() {
   document.getElementById('confirmOverlay').classList.remove('open');
   document.querySelector('.confirm-box').classList.remove('wide');
+  document.querySelector('.confirm-cancel').style.display = '';
   if (pendingAnswer) settleAnswer(null);
 }
 

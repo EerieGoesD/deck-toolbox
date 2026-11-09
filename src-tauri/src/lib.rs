@@ -48,6 +48,9 @@ pub fn run() {
             commands::scripts::speaker_test,
             commands::controls::start_controls_test,
             commands::controls::stop_controls_test,
+            commands::telemetry::app_version,
+            commands::telemetry::usage,
+            commands::telemetry::cache_size,
             commands::backups::delete_steam_backups,
             commands::disk::get_disk_usage,
         ])
