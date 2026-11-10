@@ -1,6 +1,6 @@
 {
   "name": "deck-toolbox",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "Steam Deck Toolbox - Quick-fix scripts with a modern GUI (Tauri)",
   "scripts": {
     "tauri": "cargo tauri",

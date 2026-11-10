@@ -12,6 +12,7 @@
   <launchable type="desktop-id">io.github.EerieGoesD.DeckToolbox.desktop</launchable>
   <url type="homepage">https://github.com/EerieGoesD/deck-toolbox</url>
   <releases>
+    <release version="2.0.6" date="2026-11-10"/>
     <release version="1.0.0" date="2025-01-01"/>
   </releases>
   <content_rating type="oars-1.1"/>
